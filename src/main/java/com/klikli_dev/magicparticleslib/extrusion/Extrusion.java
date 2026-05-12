@@ -6,6 +6,9 @@
 
 package com.klikli_dev.magicparticleslib.extrusion;
 
+/**
+ * A modern port of https://github.com/linas/glextrusion.
+ */
 public final class Extrusion {
     private static final ExtrusionEngine DEFAULT_ENGINE = new ExtrusionEngine();
 

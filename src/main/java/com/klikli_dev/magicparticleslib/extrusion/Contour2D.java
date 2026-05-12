@@ -8,6 +8,9 @@ package com.klikli_dev.magicparticleslib.extrusion;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * 2D contour definition used as the swept profile for an extrusion.
+ */
 public record Contour2D(List<ContourPoint> points, boolean closed) {
     public Contour2D {
         points = List.copyOf(points);
@@ -16,10 +19,24 @@ public record Contour2D(List<ContourPoint> points, boolean closed) {
         }
     }
 
+    /**
+     * Creates a contour from explicit contour points.
+     *
+     * @param points contour points forming the 2D contour
+     * @param closed whether the contour is closed or open
+     * @return contour with generated normals where missing
+     */
     public static Contour2D of(List<ContourPoint> points, boolean closed) {
         return new Contour2D(withGeneratedNormals(points, closed), closed);
     }
 
+    /**
+     * Creates a circular contour used by polycylinder, polycone, helicoid, and toroid helpers.
+     *
+     * @param radius circle radius
+     * @param segments number of segments used to tessellate the circle
+     * @return closed circular contour
+     */
     public static Contour2D circle(double radius, int segments) {
         int safeSegments = Math.max(3, segments);
         List<ContourPoint> points = new ArrayList<>(safeSegments);

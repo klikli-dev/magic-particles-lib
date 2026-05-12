@@ -7,10 +7,20 @@ package com.klikli_dev.magicparticleslib.extrusion;
 
 import net.minecraft.world.phys.Vec3;
 
+/**
+ * Matrix utilities corresponding to the upstream rotation and viewpoint helpers.
+ */
 public final class ExtrusionTransforms {
     private ExtrusionTransforms() {
     }
 
+    /**
+     * Computes a 4x4 matrix that places the forward direction on the z-axis and the up vector on the y-axis.
+     *
+     * @param direction input direction
+     * @param up input up vector
+     * @return 4x4 orientation matrix
+     */
     public static double[][] lookAlong(Vec3 direction, Vec3 up) {
         Vec3 forward = direction.lengthSqr() < 1.0E-12 ? ExtrusionMath.Z_AXIS : direction.normalize();
         Vec3 right = up.cross(forward);
@@ -29,6 +39,15 @@ public final class ExtrusionTransforms {
         };
     }
 
+    /**
+     * Computes a 4x4 matrix that translates the origin to {@code from}, puts the z-axis along {@code to - from},
+     * and aligns the y-axis with {@code up}.
+     *
+     * @param from point to translate the origin to
+     * @param to point defining the viewing direction
+     * @param up up vector
+     * @return 4x4 viewpoint matrix
+     */
     public static double[][] lookAt(Vec3 from, Vec3 to, Vec3 up) {
         double[][] matrix = lookAlong(to.subtract(from), up);
         matrix[3][0] = from.x;
@@ -37,6 +56,13 @@ public final class ExtrusionTransforms {
         return matrix;
     }
 
+    /**
+     * Computes a rotation matrix around the specified axis.
+     *
+     * @param radians rotation angle in radians
+     * @param axis rotation axis
+     * @return 4x4 rotation matrix
+     */
     public static double[][] rotationAroundAxisRadians(double radians, Vec3 axis) {
         Vec3 normalized = axis.lengthSqr() < 1.0E-12 ? ExtrusionMath.Z_AXIS : axis.normalize();
         double halfAngle = radians / 2.0;
@@ -62,6 +88,13 @@ public final class ExtrusionTransforms {
         return matrix;
     }
 
+    /**
+     * Computes a rotation matrix around the specified axis.
+     *
+     * @param degrees rotation angle in degrees
+     * @param axis rotation axis
+     * @return 4x4 rotation matrix
+     */
     public static double[][] rotationAroundAxisDegrees(double degrees, Vec3 axis) {
         return rotationAroundAxisRadians(Math.toRadians(degrees), axis);
     }

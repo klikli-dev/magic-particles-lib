@@ -8,6 +8,20 @@ package com.klikli_dev.magicparticleslib.extrusion;
 
 import net.minecraft.world.phys.Vec3;
 
+/**
+ * Immutable configuration for extrusion and tubing generation.
+ *
+ * @param upVector up vector for the contour orientation
+ * @param joinStyle join style for tube intersections
+ * @param normalStyle normal handling mode
+ * @param capEnds whether front and back end caps are emitted
+ * @param textureMode texture coordinate generation mode
+ * @param tubeSegments number of sides used to draw cylinders and circular contours
+ * @param roundJoinSegments number of pieces used to tessellate round joins
+ * @param textureLengthScale scale applied to path-length-based texture coordinates
+ * @param textureLengthOffset offset applied to path-length-based texture coordinates
+ * @param degeneracyTolerance degeneracy tolerance used for repeated points and near-colinear segments
+ */
 public record ExtrusionOptions(
         Vec3 upVector,
         JoinStyle joinStyle,
@@ -20,14 +34,31 @@ public record ExtrusionOptions(
         double textureLengthOffset,
         double degeneracyTolerance
 ) {
+    /**
+     * Creates a mutable builder for extrusion options.
+     *
+     * @return new builder instance
+     */
     public static Builder builder() {
         return new Builder();
     }
 
+    /**
+     * Returns default options matching the modern port defaults.
+     *
+     * @return default extrusion options
+     */
     public static ExtrusionOptions defaults() {
         return builder().build();
     }
 
+    /**
+     * Converts upstream-style bit flags into typed options.
+     *
+     * @param styleBits bitwise OR of upstream join and normal flags
+     * @param textureBits upstream texture mode flags
+     * @return options derived from the legacy flags
+     */
     public static ExtrusionOptions fromLegacyStyle(int styleBits, int textureBits) {
         return builder()
                 .joinStyle(JoinStyle.fromLegacyBits(styleBits))
@@ -60,56 +91,101 @@ public record ExtrusionOptions(
         private double textureLengthOffset = 0.0;
         private double degeneracyTolerance = 0.000002;
 
+        /**
+         * @param value up vector for the contour frame
+         * @return this builder
+         */
         public Builder upVector(Vec3 value) {
             this.upVector = value;
             return this;
         }
 
+        /**
+         * @param value join style controlling tube intersections
+         * @return this builder
+         */
         public Builder joinStyle(JoinStyle value) {
             this.joinStyle = value;
             return this;
         }
 
+        /**
+         * @param value normal handling mode
+         * @return this builder
+         */
         public Builder normalStyle(NormalStyle value) {
             this.normalStyle = value;
             return this;
         }
 
+        /**
+         * @param value whether to emit front and back caps
+         * @return this builder
+         */
         public Builder capEnds(boolean value) {
             this.capEnds = value;
             return this;
         }
 
+        /**
+         * @param value texture coordinate generation mode
+         * @return this builder
+         */
         public Builder textureMode(TextureCoordinateMode value) {
             this.textureMode = value;
             return this;
         }
 
+        /**
+         * @param value number of sides used for cylinders and circular contours
+         * @return this builder
+         */
         public Builder tubeSegments(int value) {
             this.tubeSegments = value;
             return this;
         }
 
+        /**
+         * @param value number of tessellation pieces used for round joins
+         * @return this builder
+         */
         public Builder roundJoinSegments(int value) {
             this.roundJoinSegments = value;
             return this;
         }
 
+        /**
+         * @param value scale applied to path-length-based texture coordinates
+         * @return this builder
+         */
         public Builder textureLengthScale(double value) {
             this.textureLengthScale = value;
             return this;
         }
 
+        /**
+         * @param value offset applied to path-length-based texture coordinates
+         * @return this builder
+         */
         public Builder textureLengthOffset(double value) {
             this.textureLengthOffset = value;
             return this;
         }
 
+        /**
+         * @param value relative tolerance for degenerate segments and points
+         * @return this builder
+         */
         public Builder degeneracyTolerance(double value) {
             this.degeneracyTolerance = value;
             return this;
         }
 
+        /**
+         * Builds the immutable option set.
+         *
+         * @return configured extrusion options
+         */
         public ExtrusionOptions build() {
             return new ExtrusionOptions(
                     this.upVector,

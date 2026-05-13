@@ -8,6 +8,10 @@ SPDX-License-Identifier: MIT
 
 A Minecraft library mod for reusable magic particles based on [glextrusion](https://github.com/linas/glextrusion).
 
+## Documentation
+
+See [docs/README.md](./docs/README.md).
+
 ## Maven
 
 See https://cloudsmith.io/~klikli-dev/repos/mods/groups/ for available versions.

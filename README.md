@@ -4,9 +4,16 @@ SPDX-FileCopyrightText: 2026 klikli-dev
 SPDX-License-Identifier: MIT
 -->
 
-# Magic Particles Lib
+# Magic Particles Lib (MPL)
 
-A Minecraft library mod for reusable magic particles based on [glextrusion](https://github.com/linas/glextrusion).
+A Minecraft library mod for reusable magic particles.   
+Besides normal sprite-based particles, MPL also implements a full java port of [glextrusion](https://github.com/linas/glextrusion) to allow 3d effects. 
+
+Note from Kli Kli: I suspect multiple mods use(d) glextrusion for magic effects (it is a very convenient way of e.g. making lightning visuals that are so much better than the vanilla one), but specifically Thaumcraft's effects are the inspiration for porting glextrusion for MPL. 
+
+## Documentation
+
+See [docs/README.md](./docs/README.md).
 
 ## Maven
 

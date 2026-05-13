@@ -4,7 +4,7 @@
 
 package com.klikli_dev.magicparticleslib.example.command;
 
-import com.klikli_dev.magicparticleslib.premade.projectile.GlowTrailProjectile;
+import com.klikli_dev.magicparticleslib.premade.projectile.glowtrail.GlowTrailProjectile;
 import com.klikli_dev.magicparticleslib.premade.projectile.VisualEntitySpawner;
 import com.mojang.brigadier.CommandDispatcher;
 import net.minecraft.commands.CommandSourceStack;

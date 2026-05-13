@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: MIT
 
-package com.klikli_dev.magicparticleslib.premade.glow;
+package com.klikli_dev.magicparticleslib.premade.particle.glow;
 
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.particles.ParticleType;

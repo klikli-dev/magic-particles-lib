@@ -5,9 +5,9 @@
 package com.klikli_dev.magicparticleslib;
 
 import com.klikli_dev.magicparticleslib.example.command.SpawnGlowTrailProjectileClientCommand;
-import com.klikli_dev.magicparticleslib.premade.projectile.GlowTrailProjectileRenderer;
+import com.klikli_dev.magicparticleslib.premade.projectile.glowtrail.GlowTrailProjectileRenderer;
 import com.klikli_dev.magicparticleslib.registry.EntityTypes;
-import com.klikli_dev.magicparticleslib.premade.glow.GlowParticleProvider;
+import com.klikli_dev.magicparticleslib.premade.particle.glow.GlowParticleProvider;
 import com.klikli_dev.magicparticleslib.registry.ParticleTypes;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;

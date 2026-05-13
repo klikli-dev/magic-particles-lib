@@ -58,20 +58,27 @@ The particle:
 Example with shrinking enabled:
 
 ```mcfunction
-/particle magicparticleslib:glow{color:#FFFF00FF,disableDepthTest:0b,shrinkWithAge:1b,size:0.25f,age:36} ~ ~1 ~ 0 0 0 0 1
+/particle magicparticleslib:glow{color:-65281,disableDepthTest:0b,shrinkWithAge:1b,size:0.25f,age:36} ~ ~1 ~ 0 0 0 0 1
 ```
 
 Example with constant size:
 
 ```mcfunction
-/particle magicparticleslib:glow{color:#80FFFFFF,disableDepthTest:0b,shrinkWithAge:0b,size:0.4f,age:60} ~ ~1 ~ 0 0 0 0 1
+/particle magicparticleslib:glow{color:-2130706433,disableDepthTest:0b,shrinkWithAge:0b,size:0.4f,age:60} ~ ~1 ~ 0 0 0 0 1
 ```
 
-`color` uses ARGB format:
+Use integer ARGB values in commands.
+
+`color` uses ARGB format internally:
 
 - `#AARRGGBB`
 - `#FFFF00FF` = opaque magenta
 - `#80FFFFFF` = 50% alpha white
+
+Equivalent command-safe integer examples:
+
+- `-65281` = `#FFFF00FF`
+- `-2130706433` = `#80FFFFFF`
 
 ## Datagen
 

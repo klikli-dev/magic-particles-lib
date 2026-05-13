@@ -1,19 +1,19 @@
-# Follow Projectile
+# Glow Trail Projectile
 
-The follow projectile is a premade visual-only entity effect that steers from a start position toward a target position while leaving a glow-particle trail behind it.
+The glow trail projectile is a premade visual-only entity effect that steers from a start position toward a target position while leaving a glow-particle trail behind it.
 
 Its primary use is client-side cosmetics for optimal performance. Spawn in any method that runs on all clients, or send a packet to all clients that should see it.
 
 ## Registry id
 
-`magicparticleslib:follow_projectile`
+`magicparticleslib:glow_trail_projectile`
 
 ## Implementation overview
 
 Relevant classes:
 
-- [`FollowProjectile`](../../src/main/java/com/klikli_dev/magicparticleslib/premade/projectile/FollowProjectile.java)
-- [`FollowProjectileRenderer`](../../src/main/java/com/klikli_dev/magicparticleslib/premade/projectile/FollowProjectileRenderer.java)
+- [`GlowTrailProjectile`](../../src/main/java/com/klikli_dev/magicparticleslib/premade/projectile/GlowTrailProjectile.java)
+- [`GlowTrailProjectileRenderer`](../../src/main/java/com/klikli_dev/magicparticleslib/premade/projectile/GlowTrailProjectileRenderer.java)
 - [`VisualEntitySpawner`](../../src/main/java/com/klikli_dev/magicparticleslib/premade/projectile/VisualEntitySpawner.java)
 - [`EntityTypes`](../../src/main/java/com/klikli_dev/magicparticleslib/registry/EntityTypes.java)
 
@@ -38,7 +38,7 @@ Create a projectile with start and end positions, optional color gradient, and a
 Vec3 from = ...;
 Vec3 to = ...;
 
-FollowProjectile projectile = new FollowProjectile(level, from, to, 0xFFFF19B4, 0xFF00FFFF, 0.1F)
+GlowTrailProjectile projectile = new GlowTrailProjectile(level, from, to, 0xFFFF19B4, 0xFF00FFFF, 0.1F)
         .arrivalDistance(0.3F)
         .spawnImpactParticles(true);
 

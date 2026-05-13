@@ -20,7 +20,7 @@ import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
 
-public class FollowProjectile extends Entity {
+public class GlowTrailProjectile extends Entity {
     public static final int DEFAULT_MAX_AGE = 500;
     public static final int DEFAULT_TRAIL_AGE = 50;
     public static final float DEFAULT_SIZE = 0.25F;
@@ -29,24 +29,24 @@ public class FollowProjectile extends Entity {
     public static final float DEFAULT_TRAIL_ALPHA = 0.75F;
     public static final float DEFAULT_EXTRA_DESPAWN_DISTANCE = 10.0F;
 
-    public static final EntityDataAccessor<Vector3fc> FROM = SynchedEntityData.defineId(FollowProjectile.class, EntityDataSerializers.VECTOR3);
-    public static final EntityDataAccessor<Vector3fc> TO = SynchedEntityData.defineId(FollowProjectile.class, EntityDataSerializers.VECTOR3);
-    public static final EntityDataAccessor<Integer> START_COLOR = SynchedEntityData.defineId(FollowProjectile.class, EntityDataSerializers.INT);
-    public static final EntityDataAccessor<Integer> END_COLOR = SynchedEntityData.defineId(FollowProjectile.class, EntityDataSerializers.INT);
-    public static final EntityDataAccessor<Float> SIZE = SynchedEntityData.defineId(FollowProjectile.class, EntityDataSerializers.FLOAT);
-    public static final EntityDataAccessor<Boolean> SPAWN_IMPACT_PARTICLES = SynchedEntityData.defineId(FollowProjectile.class, EntityDataSerializers.BOOLEAN);
-    public static final EntityDataAccessor<Float> MAX_TRAVEL_DISTANCE = SynchedEntityData.defineId(FollowProjectile.class, EntityDataSerializers.FLOAT);
-    public static final EntityDataAccessor<Float> ARRIVAL_DISTANCE = SynchedEntityData.defineId(FollowProjectile.class, EntityDataSerializers.FLOAT);
+    public static final EntityDataAccessor<Vector3fc> FROM = SynchedEntityData.defineId(GlowTrailProjectile.class, EntityDataSerializers.VECTOR3);
+    public static final EntityDataAccessor<Vector3fc> TO = SynchedEntityData.defineId(GlowTrailProjectile.class, EntityDataSerializers.VECTOR3);
+    public static final EntityDataAccessor<Integer> START_COLOR = SynchedEntityData.defineId(GlowTrailProjectile.class, EntityDataSerializers.INT);
+    public static final EntityDataAccessor<Integer> END_COLOR = SynchedEntityData.defineId(GlowTrailProjectile.class, EntityDataSerializers.INT);
+    public static final EntityDataAccessor<Float> SIZE = SynchedEntityData.defineId(GlowTrailProjectile.class, EntityDataSerializers.FLOAT);
+    public static final EntityDataAccessor<Boolean> SPAWN_IMPACT_PARTICLES = SynchedEntityData.defineId(GlowTrailProjectile.class, EntityDataSerializers.BOOLEAN);
+    public static final EntityDataAccessor<Float> MAX_TRAVEL_DISTANCE = SynchedEntityData.defineId(GlowTrailProjectile.class, EntityDataSerializers.FLOAT);
+    public static final EntityDataAccessor<Float> ARRIVAL_DISTANCE = SynchedEntityData.defineId(GlowTrailProjectile.class, EntityDataSerializers.FLOAT);
 
     private int age;
     private long spawnTime = -1L;
 
-    public FollowProjectile(Level level, Vec3 from, Vec3 to, int color, float size) {
+    public GlowTrailProjectile(Level level, Vec3 from, Vec3 to, int color, float size) {
         this(level, from, to, color, color, size);
     }
 
-    public FollowProjectile(Level level, Vec3 from, Vec3 to, int startColor, int endColor, float size) {
-        this(EntityTypes.FOLLOW_PROJECTILE.get(), level);
+    public GlowTrailProjectile(Level level, Vec3 from, Vec3 to, int startColor, int endColor, float size) {
+        this(EntityTypes.GLOW_TRAIL_PROJECTILE.get(), level);
         this.path(from, to);
         this.setPos(from);
         this.startColor(startColor);
@@ -58,20 +58,20 @@ public class FollowProjectile extends Entity {
         this.noPhysics = true;
     }
 
-    public FollowProjectile(EntityType<? extends FollowProjectile> entityType, Level level) {
+    public GlowTrailProjectile(EntityType<? extends GlowTrailProjectile> entityType, Level level) {
         super(entityType, level);
         this.setNoGravity(true);
         this.noPhysics = true;
     }
 
-    public FollowProjectile path(Vec3 from, Vec3 to) {
+    public GlowTrailProjectile path(Vec3 from, Vec3 to) {
         this.entityData.set(FROM, toVector(from));
         this.entityData.set(TO, toVector(to));
         this.maxTravelDistance((float) from.distanceTo(to) + DEFAULT_EXTRA_DESPAWN_DISTANCE);
         return this;
     }
 
-    public FollowProjectile startColor(int color) {
+    public GlowTrailProjectile startColor(int color) {
         this.entityData.set(START_COLOR, color);
         return this;
     }
@@ -80,7 +80,7 @@ public class FollowProjectile extends Entity {
         return this.entityData.get(START_COLOR);
     }
 
-    public FollowProjectile endColor(int color) {
+    public GlowTrailProjectile endColor(int color) {
         this.entityData.set(END_COLOR, color);
         return this;
     }
@@ -89,7 +89,7 @@ public class FollowProjectile extends Entity {
         return this.entityData.get(END_COLOR);
     }
 
-    public FollowProjectile size(float size) {
+    public GlowTrailProjectile size(float size) {
         this.entityData.set(SIZE, Math.max(0.0F, size));
         return this;
     }
@@ -98,7 +98,7 @@ public class FollowProjectile extends Entity {
         return this.entityData.get(SIZE);
     }
 
-    public FollowProjectile spawnImpactParticles(boolean spawnImpactParticles) {
+    public GlowTrailProjectile spawnImpactParticles(boolean spawnImpactParticles) {
         this.entityData.set(SPAWN_IMPACT_PARTICLES, spawnImpactParticles);
         return this;
     }
@@ -107,7 +107,7 @@ public class FollowProjectile extends Entity {
         return this.entityData.get(SPAWN_IMPACT_PARTICLES);
     }
 
-    public FollowProjectile maxTravelDistance(float maxTravelDistance) {
+    public GlowTrailProjectile maxTravelDistance(float maxTravelDistance) {
         this.entityData.set(MAX_TRAVEL_DISTANCE, Math.max(0.0F, maxTravelDistance));
         return this;
     }
@@ -116,7 +116,7 @@ public class FollowProjectile extends Entity {
         return this.entityData.get(MAX_TRAVEL_DISTANCE);
     }
 
-    public FollowProjectile arrivalDistance(float arrivalDistance) {
+    public GlowTrailProjectile arrivalDistance(float arrivalDistance) {
         this.entityData.set(ARRIVAL_DISTANCE, Math.max(0.01F, arrivalDistance));
         return this;
     }

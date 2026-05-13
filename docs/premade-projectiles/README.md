@@ -4,4 +4,4 @@ Premade projectiles are reusable entity-based visual effects shipped by MPL.
 
 ## Available projectiles
 
-- [Follow projectile](./follow-projectile.md)
+- [Glow trail projectile](./glow-trail-projectile.md)

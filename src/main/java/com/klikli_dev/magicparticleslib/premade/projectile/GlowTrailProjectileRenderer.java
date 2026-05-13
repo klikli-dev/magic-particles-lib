@@ -8,8 +8,8 @@ import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.state.EntityRenderState;
 
-public class FollowProjectileRenderer extends EntityRenderer<FollowProjectile, EntityRenderState> {
-    public FollowProjectileRenderer(EntityRendererProvider.Context context) {
+public class GlowTrailProjectileRenderer extends EntityRenderer<GlowTrailProjectile, EntityRenderState> {
+    public GlowTrailProjectileRenderer(EntityRendererProvider.Context context) {
         super(context);
         this.shadowRadius = 0.0F;
         this.shadowStrength = 0.0F;
@@ -21,7 +21,7 @@ public class FollowProjectileRenderer extends EntityRenderer<FollowProjectile, E
     }
 
     @Override
-    public void extractRenderState(FollowProjectile entity, EntityRenderState reusedState, float partialTick) {
+    public void extractRenderState(GlowTrailProjectile entity, EntityRenderState reusedState, float partialTick) {
         super.extractRenderState(entity, reusedState, partialTick);
 
         //no-op, rendering is handled entierly via the spawned GlowParticles.

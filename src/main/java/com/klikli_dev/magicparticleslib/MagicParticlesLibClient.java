@@ -4,8 +4,8 @@
 
 package com.klikli_dev.magicparticleslib;
 
-import com.klikli_dev.magicparticleslib.example.command.FollowProjectileClientCommand;
-import com.klikli_dev.magicparticleslib.premade.projectile.FollowProjectileRenderer;
+import com.klikli_dev.magicparticleslib.example.command.SpawnGlowTrailProjectileClientCommand;
+import com.klikli_dev.magicparticleslib.premade.projectile.GlowTrailProjectileRenderer;
 import com.klikli_dev.magicparticleslib.registry.EntityTypes;
 import com.klikli_dev.magicparticleslib.premade.glow.GlowParticleProvider;
 import com.klikli_dev.magicparticleslib.registry.ParticleTypes;
@@ -30,11 +30,11 @@ public class MagicParticlesLibClient {
     }
 
     private static void registerClientCommands(RegisterClientCommandsEvent event) {
-        FollowProjectileClientCommand.register(event.getDispatcher());
+        SpawnGlowTrailProjectileClientCommand.register(event.getDispatcher());
     }
 
     private static void registerEntityRenderers(EntityRenderersEvent.RegisterRenderers event) {
-        event.registerEntityRenderer(EntityTypes.FOLLOW_PROJECTILE.get(), FollowProjectileRenderer::new);
+        event.registerEntityRenderer(EntityTypes.GLOW_TRAIL_PROJECTILE.get(), GlowTrailProjectileRenderer::new);
     }
 
     private static void registerParticleProviders(RegisterParticleProvidersEvent event) {

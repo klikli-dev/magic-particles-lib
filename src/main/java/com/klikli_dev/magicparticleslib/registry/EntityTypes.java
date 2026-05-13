@@ -5,7 +5,7 @@
 package com.klikli_dev.magicparticleslib.registry;
 
 import com.klikli_dev.magicparticleslib.MagicParticlesLib;
-import com.klikli_dev.magicparticleslib.premade.projectile.FollowProjectile;
+import com.klikli_dev.magicparticleslib.premade.projectile.GlowTrailProjectile;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
@@ -19,9 +19,9 @@ import java.util.function.Supplier;
 public final class EntityTypes {
     public static final DeferredRegister<EntityType<?>> ENTITY_TYPES = DeferredRegister.create(Registries.ENTITY_TYPE, MagicParticlesLib.MODID);
 
-    public static final Supplier<EntityType<FollowProjectile>> FOLLOW_PROJECTILE = register(
-            "follow_projectile",
-            EntityType.Builder.<FollowProjectile>of(FollowProjectile::new, MobCategory.MISC)
+    public static final Supplier<EntityType<GlowTrailProjectile>> GLOW_TRAIL_PROJECTILE = register(
+            "glow_trail_projectile",
+            EntityType.Builder.<GlowTrailProjectile>of(GlowTrailProjectile::new, MobCategory.MISC)
                     .sized(0.5F, 0.5F)
                     .noSummon()
                     .noSave()

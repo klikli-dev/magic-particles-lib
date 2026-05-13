@@ -2,7 +2,7 @@
 
 The follow projectile is a premade visual-only entity effect that steers from a start position toward a target position while leaving a glow-particle trail behind it.
 
-Its primary use is client-side cosmetic playback.
+Its primary use is client-side cosmetics for optimal performance. Spawn in any method that runs on all clients, or send a packet to all clients that should see it.
 
 ## Registry id
 
@@ -28,7 +28,7 @@ The projectile:
 - interpolates trail color from a start color to an end color
 - emits glow particles on the client while moving
 - can optionally emit a small glow burst when it arrives
-- is intended for visual effects, not gameplay collision or damage
+- is intended for visual effects, not gameplay collision or damage, but could be subclassed to achieve that.
 
 ## Use in Code
 
@@ -51,20 +51,13 @@ projectile.setDeltaMovement(initialVelocity);
 If the effect is purely cosmetic, use `VisualEntitySpawner` to spawn it only on the local client:
 
 ```java
-VisualEntitySpawner.spawn(level, projectile);
+VisualEntitySpawner.spawn(level, projectile, true);
 ```
 
 This is useful for transient visuals that should not create server-side entities.
-
-`VisualEntitySpawner.spawn(level, projectile, true)` additionally skips spawning in chunks that are not currently ticking on the client.
+The last parameter ensures that spawning is skipped in chunks that are not currently ticking on the client.
 
 ### Server-spawned usage
 
 You can also add the entity to the level normally, but this is mainly useful when you explicitly want entity tracking.
 For purely visual playback, prefer `VisualEntitySpawner`.
-
-## Notes
-
-- `VisualEntitySpawner` is the intended default for visual purposes.
-- The `DistHelper` indirection is kept so common-side callers can safely invoke the helper without dedicated-server crashes.
-- The projectile renderer is intentionally empty because the visible output comes from the glow-particle trail rather than rendered model geometry.

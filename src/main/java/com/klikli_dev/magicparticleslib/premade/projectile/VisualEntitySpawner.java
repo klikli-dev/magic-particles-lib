@@ -4,6 +4,8 @@
 
 package com.klikli_dev.magicparticleslib.premade.projectile;
 
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.core.SectionPos;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.loading.FMLEnvironment;
 import net.minecraft.world.entity.Entity;
@@ -35,11 +37,13 @@ public final class VisualEntitySpawner {
         }
 
         private static void spawn(Level level, Entity entity, boolean onlyInTickingChunks) {
-            if (!(level instanceof net.minecraft.client.multiplayer.ClientLevel clientLevel)) {
+            if (!(level instanceof ClientLevel clientLevel)) {
                 return;
             }
 
-            if (onlyInTickingChunks && !clientLevel.shouldTickBlocksAt(entity.blockPosition())) {
+            var sectionPos = SectionPos.asLong(entity.blockPosition());
+            var section = clientLevel.entityStorage.sectionStorage.getOrCreateSection(sectionPos);
+            if (onlyInTickingChunks && !section.getStatus().isTicking()) {
                 return;
             }
 

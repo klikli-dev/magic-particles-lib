@@ -23,5 +23,7 @@ public class FollowProjectileRenderer extends EntityRenderer<FollowProjectile, E
     @Override
     public void extractRenderState(FollowProjectile entity, EntityRenderState reusedState, float partialTick) {
         super.extractRenderState(entity, reusedState, partialTick);
+
+        //no-op, rendering is handled entierly via the spawned GlowParticles.
     }
 }

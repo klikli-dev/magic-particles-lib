@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: MIT
 
-package com.klikli_dev.magicparticleslib.data.client;
+package com.klikli_dev.magicparticleslib.datagen;
 
 import com.klikli_dev.magicparticleslib.MagicParticlesLib;
 import com.klikli_dev.magicparticleslib.registry.ParticleTypes;

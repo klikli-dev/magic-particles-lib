@@ -4,7 +4,7 @@
 
 package com.klikli_dev.magicparticleslib;
 
-import com.klikli_dev.magicparticleslib.data.client.MagicParticlesLibParticleDescriptionProvider;
+import com.klikli_dev.magicparticleslib.datagen.MagicParticlesLibParticleDescriptionProvider;
 import com.klikli_dev.magicparticleslib.registry.ParticleTypes;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;

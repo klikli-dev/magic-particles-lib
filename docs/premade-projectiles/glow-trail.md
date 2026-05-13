@@ -48,6 +48,8 @@ Vec3 initialVelocity = to.subtract(from).normalize().scale(0.3F);
 projectile.setDeltaMovement(initialVelocity);
 ```
 
+The initial velocity could be set to e.g. an up or sideways vector to make the trail arch gracefully instead of flying straight. 
+
 ### Client-only usage for visuals
 
 If the effect is purely cosmetic, use `VisualEntitySpawner` to spawn it only on the local client:

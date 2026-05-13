@@ -51,7 +51,8 @@ public final class SpawnGlowTrailProjectileClientCommand {
                 .arrivalDistance(0.3F)
                 .spawnImpactParticles(true);
 
-        projectile.setDeltaMovement(to.subtract(from).normalize().scale(GlowTrailProjectile.DEFAULT_SPEED));
+        Vec3 left = player.getLookAngle().cross(new Vec3(0.0D, 1.0D, 0.0D)).normalize();
+        projectile.setDeltaMovement(left.scale(GlowTrailProjectile.DEFAULT_SPEED));
         VisualEntitySpawner.spawn(player.level(), projectile, true);
         source.sendSuccess(() -> Component.literal("Spawned glow trail projectile."), false);
         return 1;

@@ -5,6 +5,7 @@
 package com.klikli_dev.magicparticleslib;
 
 import com.klikli_dev.magicparticleslib.datagen.MagicParticlesLibParticleDescriptionProvider;
+import com.klikli_dev.magicparticleslib.registry.EntityTypes;
 import com.klikli_dev.magicparticleslib.registry.ParticleTypes;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
@@ -17,6 +18,7 @@ public class MagicParticlesLib {
     public static final String MODID = "magicparticleslib";
 
     public MagicParticlesLib(IEventBus modEventBus, ModContainer modContainer) {
+        EntityTypes.ENTITY_TYPES.register(modEventBus);
         ParticleTypes.PARTICLE_TYPES.register(modEventBus);
         modEventBus.addListener(MagicParticlesLib::gatherData);
         modContainer.registerConfig(ModConfig.Type.COMMON, Config.SPEC);

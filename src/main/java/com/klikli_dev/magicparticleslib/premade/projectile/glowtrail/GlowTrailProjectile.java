@@ -2,9 +2,9 @@
 //
 // SPDX-License-Identifier: MIT
 
-package com.klikli_dev.magicparticleslib.premade.projectile;
+package com.klikli_dev.magicparticleslib.premade.projectile.glowtrail;
 
-import com.klikli_dev.magicparticleslib.premade.glow.GlowParticleOptions;
+import com.klikli_dev.magicparticleslib.premade.particle.glow.GlowParticleOptions;
 import com.klikli_dev.magicparticleslib.registry.EntityTypes;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -20,6 +20,8 @@ import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
 
+import java.util.function.Consumer;
+
 public class GlowTrailProjectile extends Entity {
     public static final int DEFAULT_MAX_AGE = 500;
     public static final int DEFAULT_TRAIL_AGE = 50;
@@ -28,6 +30,9 @@ public class GlowTrailProjectile extends Entity {
     public static final float DEFAULT_ARRIVAL_DISTANCE = 1.0F;
     public static final float DEFAULT_TRAIL_ALPHA = 0.75F;
     public static final float DEFAULT_EXTRA_DESPAWN_DISTANCE = 10.0F;
+
+    private static final Consumer<GlowTrailProjectile> NO_OP_ARRIVAL = projectile -> {
+    };
 
     public static final EntityDataAccessor<Vector3fc> FROM = SynchedEntityData.defineId(GlowTrailProjectile.class, EntityDataSerializers.VECTOR3);
     public static final EntityDataAccessor<Vector3fc> TO = SynchedEntityData.defineId(GlowTrailProjectile.class, EntityDataSerializers.VECTOR3);
@@ -40,22 +45,12 @@ public class GlowTrailProjectile extends Entity {
 
     private int age;
     private long spawnTime = -1L;
+    private Consumer<GlowTrailProjectile> onArrival = NO_OP_ARRIVAL;
+    private boolean autoMaxTravelDistance = true;
 
-    public GlowTrailProjectile(Level level, Vec3 from, Vec3 to, int color, float size) {
-        this(level, from, to, color, color, size);
-    }
-
-    public GlowTrailProjectile(Level level, Vec3 from, Vec3 to, int startColor, int endColor, float size) {
+    public GlowTrailProjectile(Level level, Vec3 from, Vec3 to) {
         this(EntityTypes.GLOW_TRAIL_PROJECTILE.get(), level);
         this.path(from, to);
-        this.setPos(from);
-        this.startColor(startColor);
-        this.endColor(endColor);
-        this.size(size);
-        this.arrivalDistance(DEFAULT_ARRIVAL_DISTANCE);
-        this.maxTravelDistance((float) from.distanceTo(to) + DEFAULT_EXTRA_DESPAWN_DISTANCE);
-        this.setNoGravity(true);
-        this.noPhysics = true;
     }
 
     public GlowTrailProjectile(EntityType<? extends GlowTrailProjectile> entityType, Level level) {
@@ -67,8 +62,19 @@ public class GlowTrailProjectile extends Entity {
     public GlowTrailProjectile path(Vec3 from, Vec3 to) {
         this.entityData.set(FROM, toVector(from));
         this.entityData.set(TO, toVector(to));
-        this.maxTravelDistance((float) from.distanceTo(to) + DEFAULT_EXTRA_DESPAWN_DISTANCE);
+        this.setPos(from);
+        if (this.autoMaxTravelDistance) {
+            this.entityData.set(MAX_TRAVEL_DISTANCE, (float) from.distanceTo(to) + DEFAULT_EXTRA_DESPAWN_DISTANCE);
+        }
         return this;
+    }
+
+    public GlowTrailProjectile color(int color) {
+        return this.colors(color, color);
+    }
+
+    public GlowTrailProjectile colors(int startColor, int endColor) {
+        return this.startColor(startColor).endColor(endColor);
     }
 
     public GlowTrailProjectile startColor(int color) {
@@ -94,6 +100,11 @@ public class GlowTrailProjectile extends Entity {
         return this;
     }
 
+    public GlowTrailProjectile initialVelocity(Vec3 velocity) {
+        this.setDeltaMovement(velocity);
+        return this;
+    }
+
     public float size() {
         return this.entityData.get(SIZE);
     }
@@ -108,6 +119,7 @@ public class GlowTrailProjectile extends Entity {
     }
 
     public GlowTrailProjectile maxTravelDistance(float maxTravelDistance) {
+        this.autoMaxTravelDistance = false;
         this.entityData.set(MAX_TRAVEL_DISTANCE, Math.max(0.0F, maxTravelDistance));
         return this;
     }
@@ -118,6 +130,11 @@ public class GlowTrailProjectile extends Entity {
 
     public GlowTrailProjectile arrivalDistance(float arrivalDistance) {
         this.entityData.set(ARRIVAL_DISTANCE, Math.max(0.01F, arrivalDistance));
+        return this;
+    }
+
+    public GlowTrailProjectile onArrival(Consumer<GlowTrailProjectile> onArrival) {
+        this.onArrival = onArrival == null ? NO_OP_ARRIVAL : onArrival;
         return this;
     }
 
@@ -160,8 +177,13 @@ public class GlowTrailProjectile extends Entity {
         Vec3 motion = this.getDeltaMovement();
         double distanceToTarget = this.position().distanceTo(to);
 
-        if (this.hasArrived(distanceToTarget, motion.length()) || this.position().distanceTo(from) > this.maxTravelDistance()) {
-            this.finishAt(to);
+        if (this.hasArrived(distanceToTarget, motion.length())) {
+            this.arriveAt(to);
+            return;
+        }
+
+        if (this.position().distanceTo(from) > this.maxTravelDistance()) {
+            this.discard();
             return;
         }
 
@@ -193,14 +215,20 @@ public class GlowTrailProjectile extends Entity {
         return distanceToTarget <= Math.max(this.arrivalDistance(), motionLength);
     }
 
-    private void finishAt(Vec3 target) {
+    private void arriveAt(Vec3 target) {
         this.setPos(target);
 
         if (this.level().isClientSide() && this.spawnImpactParticles()) {
             this.spawnImpactParticles(target);
         }
 
-        this.discard();
+        Consumer<GlowTrailProjectile> callback = this.onArrival;
+        this.onArrival = NO_OP_ARRIVAL;
+        try {
+            callback.accept(this);
+        } finally {
+            this.discard();
+        }
     }
 
     private Vec3 guideTowards(Vec3 target, Vec3 currentMotion) {
@@ -238,7 +266,11 @@ public class GlowTrailProjectile extends Entity {
         for (int i = 0; i <= Mth.ceil(segmentCount); i++) {
             float coefficient = i / segmentCount;
             this.level().addParticle(
-                    GlowParticleOptions.create(trailColor, true, true, this.size(), DEFAULT_TRAIL_AGE),
+                    GlowParticleOptions.of(trailColor)
+                            .disableDepthTest(true)
+                            .shrinkWithAge(true)
+                            .size(this.size())
+                            .age(DEFAULT_TRAIL_AGE),
                     this.getX() + deltaX * coefficient,
                     this.getY() + deltaY * coefficient,
                     this.getZ() + deltaZ * coefficient,
@@ -253,7 +285,11 @@ public class GlowTrailProjectile extends Entity {
         int impactColor = withAlpha(this.endColor(), DEFAULT_TRAIL_ALPHA);
         for (int i = 0; i < 8; i++) {
             this.level().addParticle(
-                    GlowParticleOptions.create(impactColor, true, true, this.size(), DEFAULT_TRAIL_AGE),
+                    GlowParticleOptions.of(impactColor)
+                            .disableDepthTest(true)
+                            .shrinkWithAge(true)
+                            .size(this.size())
+                            .age(DEFAULT_TRAIL_AGE),
                     target.x,
                     target.y,
                     target.z,

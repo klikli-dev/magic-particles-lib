@@ -14,12 +14,12 @@ Its primary use is client-side cosmetics for optimal performance. Spawn in any m
 
 Relevant classes:
 
-- [`GlowTrailProjectile`](../../src/main/java/com/klikli_dev/magicparticleslib/premade/projectile/GlowTrailProjectile.java)
-- [`GlowTrailProjectileRenderer`](../../src/main/java/com/klikli_dev/magicparticleslib/premade/projectile/GlowTrailProjectileRenderer.java)
+- [`GlowTrailProjectile`](../../src/main/java/com/klikli_dev/magicparticleslib/premade/projectile/glowtrail/GlowTrailProjectile.java)
+- [`GlowTrailProjectileRenderer`](../../src/main/java/com/klikli_dev/magicparticleslib/premade/projectile/glowtrail/GlowTrailProjectileRenderer.java)
 - [`VisualEntitySpawner`](../../src/main/java/com/klikli_dev/magicparticleslib/premade/projectile/VisualEntitySpawner.java)
 - [`EntityTypes`](../../src/main/java/com/klikli_dev/magicparticleslib/registry/EntityTypes.java)
 
-The projectile trail uses [`GlowParticleOptions`](../../src/main/java/com/klikli_dev/magicparticleslib/premade/glow/GlowParticleOptions.java).
+The projectile trail uses [`GlowParticleOptions`](../../src/main/java/com/klikli_dev/magicparticleslib/premade/particle/glow/GlowParticleOptions.java).
 
 ## Behavior
 
@@ -40,12 +40,14 @@ Create a projectile with start and end positions, optional color gradient, and a
 Vec3 from = ...;
 Vec3 to = ...;
 
-GlowTrailProjectile projectile = new GlowTrailProjectile(level, from, to, 0xFFFF19B4, 0xFF00FFFF, 0.1F)
+GlowTrailProjectile projectile = new GlowTrailProjectile(level, from, to)
+        .colors(0xFFFF19B4, 0xFF00FFFF)
+        .size(0.1F)
         .arrivalDistance(0.3F)
         .spawnImpactParticles(true);
 
 Vec3 initialVelocity = to.subtract(from).normalize().scale(0.3F);
-projectile.setDeltaMovement(initialVelocity);
+projectile.initialVelocity(initialVelocity);
 ```
 
 The initial velocity could be set to e.g. an up or sideways vector to make the trail arch gracefully instead of flying straight. 

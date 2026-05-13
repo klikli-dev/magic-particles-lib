@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: MIT
 
-package com.klikli_dev.magicparticleslib.premade.glow;
+package com.klikli_dev.magicparticleslib.premade.particle.glow;
 
 import com.klikli_dev.magicparticleslib.MagicParticlesLib;
 import com.mojang.blaze3d.pipeline.BlendFunction;
@@ -47,14 +47,14 @@ public class GlowParticle extends SingleQuadParticle {
         this.disableDepthTest = options.disableDepthTest();
         this.shrinkWithAge = options.shrinkWithAge();
         this.initialScale = options.size();
-        this.initialAlpha = options.getAlpha();
+        this.initialAlpha = options.alpha();
         this.lifetime = Math.max(1, options.age());
         this.quadSize = this.initialScale;
         this.alpha = this.initialAlpha;
         this.xd = xSpeed * 2.0F;
         this.yd = ySpeed * 2.0F;
         this.zd = zSpeed * 2.0F;
-        this.setColor(options.getRed(), options.getGreen(), options.getBlue());
+        this.setColor(options.red(), options.green(), options.blue());
         this.setSpriteFromAge(sprites);
     }
 

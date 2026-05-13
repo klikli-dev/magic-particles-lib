@@ -5,8 +5,8 @@
 package com.klikli_dev.magicparticleslib.registry;
 
 import com.klikli_dev.magicparticleslib.MagicParticlesLib;
-import com.klikli_dev.magicparticleslib.premade.glow.GlowParticleOptions;
-import com.klikli_dev.magicparticleslib.premade.glow.GlowParticleType;
+import com.klikli_dev.magicparticleslib.premade.particle.glow.GlowParticleOptions;
+import com.klikli_dev.magicparticleslib.premade.particle.glow.GlowParticleType;
 import net.minecraft.core.particles.ParticleType;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.neoforged.neoforge.registries.DeferredRegister;

@@ -5,7 +5,7 @@
 package com.klikli_dev.magicparticleslib.registry;
 
 import com.klikli_dev.magicparticleslib.MagicParticlesLib;
-import com.klikli_dev.magicparticleslib.premade.projectile.GlowTrailProjectile;
+import com.klikli_dev.magicparticleslib.premade.projectile.glowtrail.GlowTrailProjectile;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;

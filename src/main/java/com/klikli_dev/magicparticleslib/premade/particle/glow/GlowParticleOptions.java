@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: MIT
 
-package com.klikli_dev.magicparticleslib.premade.glow;
+package com.klikli_dev.magicparticleslib.premade.particle.glow;
 
 import com.klikli_dev.magicparticleslib.registry.ParticleTypes;
 import com.mojang.serialization.Codec;
@@ -21,6 +21,11 @@ public record GlowParticleOptions(int color, boolean disableDepthTest, boolean s
     public static final float DEFAULT_SIZE = 0.25F;
     public static final int DEFAULT_AGE = 36;
     public static final boolean DEFAULT_SHRINK_WITH_AGE = true;
+
+    public GlowParticleOptions {
+        size = Math.max(0.0F, size);
+        age = Math.max(1, age);
+    }
 
     public static final MapCodec<GlowParticleOptions> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
             ExtraCodecs.ARGB_COLOR_CODEC.fieldOf("color").forGetter(GlowParticleOptions::color),
@@ -44,40 +49,44 @@ public record GlowParticleOptions(int color, boolean disableDepthTest, boolean s
             GlowParticleOptions::new
     );
 
-    public GlowParticleOptions(int color) {
-        this(color, false);
+    public static GlowParticleOptions of(int color) {
+        return new GlowParticleOptions(color, false, DEFAULT_SHRINK_WITH_AGE, DEFAULT_SIZE, DEFAULT_AGE);
     }
 
-    public GlowParticleOptions(int color, boolean disableDepthTest) {
-        this(color, disableDepthTest, DEFAULT_SHRINK_WITH_AGE, DEFAULT_SIZE, DEFAULT_AGE);
+    public GlowParticleOptions color(int color) {
+        return new GlowParticleOptions(color, this.disableDepthTest, this.shrinkWithAge, this.size, this.age);
     }
 
-    public float getRed() {
+    public GlowParticleOptions disableDepthTest(boolean disableDepthTest) {
+        return new GlowParticleOptions(this.color, disableDepthTest, this.shrinkWithAge, this.size, this.age);
+    }
+
+    public GlowParticleOptions shrinkWithAge(boolean shrinkWithAge) {
+        return new GlowParticleOptions(this.color, this.disableDepthTest, shrinkWithAge, this.size, this.age);
+    }
+
+    public GlowParticleOptions size(float size) {
+        return new GlowParticleOptions(this.color, this.disableDepthTest, this.shrinkWithAge, size, this.age);
+    }
+
+    public GlowParticleOptions age(int age) {
+        return new GlowParticleOptions(this.color, this.disableDepthTest, this.shrinkWithAge, this.size, age);
+    }
+
+    public float red() {
         return ARGB.redFloat(this.color);
     }
 
-    public float getGreen() {
+    public float green() {
         return ARGB.greenFloat(this.color);
     }
 
-    public float getBlue() {
+    public float blue() {
         return ARGB.blueFloat(this.color);
     }
 
-    public float getAlpha() {
+    public float alpha() {
         return ARGB.alphaFloat(this.color);
-    }
-
-    public static GlowParticleOptions create(int color) {
-        return new GlowParticleOptions(color);
-    }
-
-    public static GlowParticleOptions create(int color, boolean disableDepthTest, boolean shrinkWithAge, float size, int age) {
-        return new GlowParticleOptions(color, disableDepthTest, shrinkWithAge, size, age);
-    }
-
-    public static GlowParticleOptions create(float alpha, float red, float green, float blue) {
-        return create(ARGB.colorFromFloat(alpha, red, green, blue));
     }
 
     @Override

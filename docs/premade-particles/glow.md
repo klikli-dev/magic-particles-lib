@@ -12,10 +12,10 @@ The glow particle is a premade translucent particle with full-bright rendering, 
 
 Relevant classes:
 
-- [`GlowParticleOptions`](../../src/main/java/com/klikli_dev/magicparticleslib/premade/glow/GlowParticleOptions.java)
-- [`GlowParticleType`](../../src/main/java/com/klikli_dev/magicparticleslib/premade/glow/GlowParticleType.java)
-- [`GlowParticleProvider`](../../src/main/java/com/klikli_dev/magicparticleslib/premade/glow/GlowParticleProvider.java)
-- [`GlowParticle`](../../src/main/java/com/klikli_dev/magicparticleslib/premade/glow/GlowParticle.java)
+- [`GlowParticleOptions`](../../src/main/java/com/klikli_dev/magicparticleslib/premade/particle/glow/GlowParticleOptions.java)
+- [`GlowParticleType`](../../src/main/java/com/klikli_dev/magicparticleslib/premade/particle/glow/GlowParticleType.java)
+- [`GlowParticleProvider`](../../src/main/java/com/klikli_dev/magicparticleslib/premade/particle/glow/GlowParticleProvider.java)
+- [`GlowParticle`](../../src/main/java/com/klikli_dev/magicparticleslib/premade/particle/glow/GlowParticle.java)
 
 Particle description datagen is done in [`MagicParticlesLibParticleDescriptionProvider`](../../src/main/java/com/klikli_dev/magicparticleslib/datagen/MagicParticlesLibParticleDescriptionProvider.java).
 
@@ -31,7 +31,7 @@ Particle description datagen is done in [`MagicParticlesLibParticleDescriptionPr
 | `size` | `float` | `0.25f` | Initial quad size                        |
 | `age` | `int` | `36` | Lifetime in ticks                        |
 
-Helper methods are exposed on `GlowParticleOptions` for constructing options in code.
+Use `GlowParticleOptions.of(color)` and fluent methods to construct options in code.
 
 ## Behavior
 
@@ -48,7 +48,15 @@ The particle:
 ## Use in Code 
 
 See https://docs.neoforged.net/docs/resources/client/particles/#spawning-particles.   
-Use `GlowParticleOptions` with the methods described there.
+Example:
+
+```java
+GlowParticleOptions options = GlowParticleOptions.of(0xFFFF00FF)
+        .disableDepthTest(false)
+        .shrinkWithAge(true)
+        .size(0.25F)
+        .age(36);
+```
 
 ## Command usage
 

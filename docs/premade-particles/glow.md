@@ -1,9 +1,3 @@
-<!--
-SPDX-FileCopyrightText: 2026 klikli-dev
-
-SPDX-License-Identifier: MIT
--->
-
 # Glow Particle
 
 The glow particle is a premade translucent particle with full-bright rendering, configurable ARGB color, optional no-depth rendering, and optional shrinking over its lifetime.

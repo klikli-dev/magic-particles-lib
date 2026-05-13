@@ -4,6 +4,8 @@ The glow trail projectile is a premade visual-only entity effect that steers fro
 
 Its primary use is client-side cosmetics for optimal performance. Spawn in any method that runs on all clients, or send a packet to all clients that should see it.
 
+![glow-trail.gif](./glow-trail.gif)
+
 ## Registry id
 
 `magicparticleslib:glow_trail_projectile`

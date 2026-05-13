@@ -19,6 +19,7 @@ import net.minecraft.client.particle.SpriteSet;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.LightCoordsUtil;
+import org.jspecify.annotations.NonNull;
 
 public class GlowParticle extends SingleQuadParticle {
     private static final SingleQuadParticle.Layer TRANSLUCENT_NO_DEPTH = createNoDepthLayer();
@@ -27,6 +28,7 @@ public class GlowParticle extends SingleQuadParticle {
     private final float initialScale;
     private final float initialAlpha;
     private final boolean disableDepthTest;
+    private final boolean shrinkWithAge;
 
     protected GlowParticle(
             ClientLevel level,
@@ -43,6 +45,7 @@ public class GlowParticle extends SingleQuadParticle {
         this.hasPhysics = false;
         this.sprites = sprites;
         this.disableDepthTest = options.disableDepthTest();
+        this.shrinkWithAge = options.shrinkWithAge();
         this.initialScale = options.size();
         this.initialAlpha = options.getAlpha();
         this.lifetime = Math.max(1, options.age());
@@ -77,7 +80,7 @@ public class GlowParticle extends SingleQuadParticle {
     }
 
     @Override
-    public SingleQuadParticle.Layer getLayer() {
+    public SingleQuadParticle.@NonNull Layer getLayer() {
         return this.disableDepthTest ? TRANSLUCENT_NO_DEPTH : SingleQuadParticle.Layer.TRANSLUCENT;
     }
 
@@ -95,7 +98,7 @@ public class GlowParticle extends SingleQuadParticle {
         }
 
         float lifeCoeff = (float) this.age / (float) this.lifetime;
-        this.quadSize = this.initialScale;
+        this.quadSize = this.shrinkWithAge ? this.initialScale * (1.0F - lifeCoeff) : this.initialScale;
         this.alpha = this.initialAlpha * (1.0F - lifeCoeff);
         this.oRoll = this.roll;
         this.roll += 1.0F;

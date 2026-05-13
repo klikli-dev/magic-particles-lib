@@ -16,15 +16,17 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.ARGB;
 import net.minecraft.util.ExtraCodecs;
 
-public record GlowParticleOptions(int color, boolean disableDepthTest, float size, int age) implements ParticleOptions {
+public record GlowParticleOptions(int color, boolean disableDepthTest, boolean shrinkWithAge, float size, int age) implements ParticleOptions {
     public static final float DEFAULT_SIZE = 0.25F;
     public static final float DEFAULT_ALPHA = 1.0F;
     public static final int DEFAULT_AGE = 36;
     public static final int DEFAULT_COLOR = ARGB.colorFromFloat(DEFAULT_ALPHA, 1.0F, 1.0F, 1.0F);
+    public static final boolean DEFAULT_SHRINK_WITH_AGE = true;
 
     public static final MapCodec<GlowParticleOptions> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
             ExtraCodecs.ARGB_COLOR_CODEC.fieldOf("color").forGetter(GlowParticleOptions::color),
             Codec.BOOL.fieldOf("disableDepthTest").forGetter(GlowParticleOptions::disableDepthTest),
+            Codec.BOOL.fieldOf("shrinkWithAge").forGetter(GlowParticleOptions::shrinkWithAge),
             Codec.FLOAT.fieldOf("size").forGetter(GlowParticleOptions::size),
             Codec.INT.fieldOf("age").forGetter(GlowParticleOptions::age)
     ).apply(instance, GlowParticleOptions::new));
@@ -34,6 +36,8 @@ public record GlowParticleOptions(int color, boolean disableDepthTest, float siz
             GlowParticleOptions::color,
             ByteBufCodecs.BOOL,
             GlowParticleOptions::disableDepthTest,
+            ByteBufCodecs.BOOL,
+            GlowParticleOptions::shrinkWithAge,
             ByteBufCodecs.FLOAT,
             GlowParticleOptions::size,
             ByteBufCodecs.VAR_INT,
@@ -46,7 +50,7 @@ public record GlowParticleOptions(int color, boolean disableDepthTest, float siz
     }
 
     public GlowParticleOptions(int color, boolean disableDepthTest) {
-        this(color, disableDepthTest, DEFAULT_SIZE, DEFAULT_AGE);
+        this(color, disableDepthTest, DEFAULT_SHRINK_WITH_AGE, DEFAULT_SIZE, DEFAULT_AGE);
     }
 
     public float getRed() {
@@ -69,8 +73,8 @@ public record GlowParticleOptions(int color, boolean disableDepthTest, float siz
         return new GlowParticleOptions(color);
     }
 
-    public static GlowParticleOptions create(int color, boolean disableDepthTest, float size, int age) {
-        return new GlowParticleOptions(color, disableDepthTest, size, age);
+    public static GlowParticleOptions create(int color, boolean disableDepthTest, boolean shrinkWithAge, float size, int age) {
+        return new GlowParticleOptions(color, disableDepthTest, shrinkWithAge, size, age);
     }
 
     public static GlowParticleOptions create(float alpha, float red, float green, float blue) {

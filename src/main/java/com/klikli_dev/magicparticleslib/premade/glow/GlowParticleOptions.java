@@ -13,54 +13,68 @@ import net.minecraft.core.particles.ParticleType;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.util.ARGB;
+import net.minecraft.util.ExtraCodecs;
 
-public record GlowParticleOptions(float red, float green, float blue, boolean disableDepthTest, float size, float alpha, int age) implements ParticleOptions {
+public record GlowParticleOptions(int color, boolean disableDepthTest, float size, int age) implements ParticleOptions {
     public static final float DEFAULT_SIZE = 0.25F;
     public static final float DEFAULT_ALPHA = 1.0F;
     public static final int DEFAULT_AGE = 36;
+    public static final int DEFAULT_COLOR = ARGB.colorFromFloat(DEFAULT_ALPHA, 1.0F, 1.0F, 1.0F);
 
     public static final MapCodec<GlowParticleOptions> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-            Codec.FLOAT.fieldOf("r").forGetter(GlowParticleOptions::red),
-            Codec.FLOAT.fieldOf("g").forGetter(GlowParticleOptions::green),
-            Codec.FLOAT.fieldOf("b").forGetter(GlowParticleOptions::blue),
+            ExtraCodecs.ARGB_COLOR_CODEC.fieldOf("color").forGetter(GlowParticleOptions::color),
             Codec.BOOL.fieldOf("disableDepthTest").forGetter(GlowParticleOptions::disableDepthTest),
             Codec.FLOAT.fieldOf("size").forGetter(GlowParticleOptions::size),
-            Codec.FLOAT.fieldOf("alpha").forGetter(GlowParticleOptions::alpha),
             Codec.INT.fieldOf("age").forGetter(GlowParticleOptions::age)
     ).apply(instance, GlowParticleOptions::new));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, GlowParticleOptions> STREAM_CODEC = StreamCodec.composite(
-            ByteBufCodecs.FLOAT,
-            GlowParticleOptions::red,
-            ByteBufCodecs.FLOAT,
-            GlowParticleOptions::green,
-            ByteBufCodecs.FLOAT,
-            GlowParticleOptions::blue,
+            ByteBufCodecs.INT,
+            GlowParticleOptions::color,
             ByteBufCodecs.BOOL,
             GlowParticleOptions::disableDepthTest,
             ByteBufCodecs.FLOAT,
             GlowParticleOptions::size,
-            ByteBufCodecs.FLOAT,
-            GlowParticleOptions::alpha,
             ByteBufCodecs.VAR_INT,
             GlowParticleOptions::age,
             GlowParticleOptions::new
     );
 
-    public GlowParticleOptions(float red, float green, float blue) {
-        this(red, green, blue, false);
+    public GlowParticleOptions(int color) {
+        this(color, false);
     }
 
-    public GlowParticleOptions(float red, float green, float blue, boolean disableDepthTest) {
-        this(red, green, blue, disableDepthTest, DEFAULT_SIZE, DEFAULT_ALPHA, DEFAULT_AGE);
+    public GlowParticleOptions(int color, boolean disableDepthTest) {
+        this(color, disableDepthTest, DEFAULT_SIZE, DEFAULT_AGE);
     }
 
-    public static GlowParticleOptions create(float red, float green, float blue) {
-        return new GlowParticleOptions(red, green, blue);
+    public float getRed() {
+        return ARGB.redFloat(this.color);
     }
 
-    public static GlowParticleOptions create(float red, float green, float blue, boolean disableDepthTest, float size, float alpha, int age) {
-        return new GlowParticleOptions(red, green, blue, disableDepthTest, size, alpha, age);
+    public float getGreen() {
+        return ARGB.greenFloat(this.color);
+    }
+
+    public float getBlue() {
+        return ARGB.blueFloat(this.color);
+    }
+
+    public float getAlpha() {
+        return ARGB.alphaFloat(this.color);
+    }
+
+    public static GlowParticleOptions create(int color) {
+        return new GlowParticleOptions(color);
+    }
+
+    public static GlowParticleOptions create(int color, boolean disableDepthTest, float size, int age) {
+        return new GlowParticleOptions(color, disableDepthTest, size, age);
+    }
+
+    public static GlowParticleOptions create(float alpha, float red, float green, float blue) {
+        return create(ARGB.colorFromFloat(alpha, red, green, blue));
     }
 
     @Override

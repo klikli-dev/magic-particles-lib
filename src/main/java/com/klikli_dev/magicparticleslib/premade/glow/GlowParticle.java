@@ -44,18 +44,15 @@ public class GlowParticle extends SingleQuadParticle {
         this.sprites = sprites;
         this.disableDepthTest = options.disableDepthTest();
         this.initialScale = options.size();
-        this.initialAlpha = options.alpha();
-        this.lifetime = (int) (options.age() * 0.5F);
-        this.quadSize = 0.0F;
+        this.initialAlpha = options.getAlpha();
+        this.lifetime = Math.max(1, options.age());
+        this.quadSize = this.initialScale;
+        this.alpha = this.initialAlpha;
         this.xd = xSpeed * 2.0F;
         this.yd = ySpeed * 2.0F;
         this.zd = zSpeed * 2.0F;
-        this.setColor(normalizeChannel(options.red()), normalizeChannel(options.green()), normalizeChannel(options.blue()));
+        this.setColor(options.getRed(), options.getGreen(), options.getBlue());
         this.setSpriteFromAge(sprites);
-    }
-
-    private static float normalizeChannel(float channel) {
-        return channel > 1.0F ? channel / 255.0F : channel;
     }
 
     private static SingleQuadParticle.Layer createNoDepthLayer() {
@@ -98,7 +95,7 @@ public class GlowParticle extends SingleQuadParticle {
         }
 
         float lifeCoeff = (float) this.age / (float) this.lifetime;
-        this.quadSize = this.initialScale - this.initialScale * lifeCoeff;
+        this.quadSize = this.initialScale;
         this.alpha = this.initialAlpha * (1.0F - lifeCoeff);
         this.oRoll = this.roll;
         this.roll += 1.0F;

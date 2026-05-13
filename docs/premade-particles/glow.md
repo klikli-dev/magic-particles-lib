@@ -25,17 +25,17 @@ Relevant classes:
 
 Particle description datagen is done in [`MagicParticlesLibParticleDescriptionProvider`](../../src/main/java/com/klikli_dev/magicparticleslib/datagen/MagicParticlesLibParticleDescriptionProvider.java).
 
-## Options
+## Particle Options
 
 `GlowParticleOptions` uses a packed ARGB color similar to vanilla `ColorParticleOption`, plus a few particle-specific fields.
 
-| Field | Type | Default | Description |
-|---|---|---:|---|
-| `color` | `int` / ARGB color codec | `#FFFFFFFF` | Packed particle color including alpha |
+| Field | Type | Default | Description                              |
+|---|---|---:|------------------------------------------|
+| `color` | `int` / ARGB color codec | `#FFFFFFFF` | Packed particle color including alpha    |
 | `disableDepthTest` | `boolean` | `false` | Uses a no-depth translucent render layer |
-| `shrinkWithAge` | `boolean` | `true` | Shrinks size linearly over lifetime |
-| `size` | `float` | `0.25f` | Initial quad size |
-| `age` | `int` | `36` | Lifetime in ticks, clamped to at least `1` internally |
+| `shrinkWithAge` | `boolean` | `true` | Shrinks size linearly over lifetime      |
+| `size` | `float` | `0.25f` | Initial quad size                        |
+| `age` | `int` | `36` | Lifetime in ticks                        |
 
 Helper methods are exposed on `GlowParticleOptions` for constructing options in code.
 
@@ -50,6 +50,11 @@ The particle:
 - rotates over time
 - uses a sprite-set based particle description
 - can optionally disable depth writes/testing behavior for overlapping translucent visuals
+
+## Use in Code 
+
+See https://docs.neoforged.net/docs/resources/client/particles/#spawning-particles.   
+Use `GlowParticleOptions` with the methods described there.
 
 ## Command usage
 

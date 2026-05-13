@@ -53,18 +53,6 @@ public class GlowTrailProjectile extends Entity {
         this.path(from, to);
     }
 
-    public GlowTrailProjectile(Level level, Vec3 from, Vec3 to, int color, float size) {
-        this(level, from, to);
-        this.color(color);
-        this.size(size);
-    }
-
-    public GlowTrailProjectile(Level level, Vec3 from, Vec3 to, int startColor, int endColor, float size) {
-        this(level, from, to);
-        this.colors(startColor, endColor);
-        this.size(size);
-    }
-
     public GlowTrailProjectile(EntityType<? extends GlowTrailProjectile> entityType, Level level) {
         super(entityType, level);
         this.setNoGravity(true);

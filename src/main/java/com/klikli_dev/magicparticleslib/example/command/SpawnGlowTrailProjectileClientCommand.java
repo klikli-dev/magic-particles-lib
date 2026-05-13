@@ -40,19 +40,15 @@ public final class SpawnGlowTrailProjectileClientCommand {
         Vec3 from = player.position();
         Vec3 to = from.add(player.getLookAngle().scale(10.0D)).add(0.0D, 3.0D, 0.0D);
 
-        GlowTrailProjectile projectile = new GlowTrailProjectile(
-                player.level(),
-                from,
-                to,
-                ARGB.color(255, 255, 25, 180),
-                ARGB.color(255, 0, 255, 255),
-                0.15F
-        )
+        GlowTrailProjectile projectile = new GlowTrailProjectile(player.level(), from, to)
+                .colors(ARGB.color(255, 255, 25, 180), ARGB.color(255, 0, 255, 255))
+                .size(0.15F)
                 .arrivalDistance(0.3F)
-                .spawnImpactParticles(true);
+                .spawnImpactParticles(true)
+                .onArrival(ignored -> source.sendSuccess(() -> Component.literal("Glow trail projectile arrived."), false));
 
         Vec3 left = player.getLookAngle().cross(new Vec3(0.0D, 1.0D, 0.0D)).normalize();
-        projectile.setDeltaMovement(left.scale(GlowTrailProjectile.DEFAULT_SPEED));
+        projectile.initialVelocity(left.scale(GlowTrailProjectile.DEFAULT_SPEED));
         VisualEntitySpawner.spawn(player.level(), projectile, true);
         source.sendSuccess(() -> Component.literal("Spawned glow trail projectile."), false);
         return 1;

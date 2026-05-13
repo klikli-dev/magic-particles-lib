@@ -8,11 +8,11 @@ SPDX-License-Identifier: MIT
 
 The glow particle is a premade translucent particle with full-bright rendering, configurable ARGB color, optional no-depth rendering, and optional shrinking over its lifetime.
 
+![glow.png](glow.png)
+
 ## Registry id
 
 `magicparticleslib:glow`
-
-Registered in [`src/main/java/com/klikli_dev/magicparticleslib/registry/ParticleTypes.java`](../../src/main/java/com/klikli_dev/magicparticleslib/registry/ParticleTypes.java).
 
 ## Implementation overview
 
@@ -22,8 +22,6 @@ Relevant classes:
 - [`GlowParticleType`](../../src/main/java/com/klikli_dev/magicparticleslib/premade/glow/GlowParticleType.java)
 - [`GlowParticleProvider`](../../src/main/java/com/klikli_dev/magicparticleslib/premade/glow/GlowParticleProvider.java)
 - [`GlowParticle`](../../src/main/java/com/klikli_dev/magicparticleslib/premade/glow/GlowParticle.java)
-
-Client registration is done in [`MagicParticlesLibClient`](../../src/main/java/com/klikli_dev/magicparticleslib/MagicParticlesLibClient.java).
 
 Particle description datagen is done in [`MagicParticlesLibParticleDescriptionProvider`](../../src/main/java/com/klikli_dev/magicparticleslib/datagen/MagicParticlesLibParticleDescriptionProvider.java).
 
@@ -79,23 +77,3 @@ Equivalent command-safe integer examples:
 
 - `-65281` = `#FFFF00FF`
 - `-2130706433` = `#80FFFFFF`
-
-## Datagen
-
-The particle description is generated, not hand-authored.
-
-Generated output:
-
-- [`src/generated/resources/assets/magicparticleslib/particles/glow.json`](../../src/generated/resources/assets/magicparticleslib/particles/glow.json)
-
-Texture:
-
-- [`src/main/resources/assets/magicparticleslib/textures/particle/particle_glow.png`](../../src/main/resources/assets/magicparticleslib/textures/particle/particle_glow.png)
-
-The datagen provider lives in the `datagen` package, not the older `data.client` location.
-
-## Integration notes
-
-- Use `ParticleTypes.GLOW.get()` when constructing or sending the particle from code.
-- Register the sprite-set provider on the client using `RegisterParticleProvidersEvent#registerSpriteSet`.
-- Keep `runData` up to date if the particle description or texture naming changes.

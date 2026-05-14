@@ -23,10 +23,6 @@ sourceSets.main.resources {
     exclude('.cache/**')
 }
 
-repositories {
-    mavenLocal()
-}
-
 base {
     archivesName = "${mod_id}-${minecraft_version}-neoforge"
 }
@@ -74,6 +70,34 @@ neoForge {
     mods {
         "${mod_id}" {
             sourceSet(sourceSets.main)
+        }
+    }
+}
+
+// Sets up a dependency configuration called 'localRuntime'.
+// This configuration should be used instead of 'runtimeOnly' to declare
+// a dependency that will be present for runtime testing but that is
+// "optional", meaning it will not be pulled by dependents of this mod.
+configurations {
+    runtimeClasspath.extendsFrom localRuntime
+}
+
+dependencies {
+    //Jei
+    compileOnly "mezz.jei:jei-${minecraft_version}-common-api:${jei_version}"
+    //we're using the vanilla recipe category rendering constants
+    compileOnly "mezz.jei:jei-${minecraft_version}-neoforge-api:${jei_version}"
+    localRuntime "mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}"
+}
+
+
+repositories {
+    mavenLocal()
+    maven {
+        name = 'JEI Maven'
+        url = 'https://maven.blamejared.com'
+        content {
+            includeGroup "mezz.jei"
         }
     }
 }

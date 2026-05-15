@@ -2,7 +2,9 @@
 //
 // SPDX-License-Identifier: MIT
 
-package com.klikli_dev.magicparticleslib.premade.rift;
+package com.klikli_dev.magicparticleslib.premade.branchingrift;
+
+import com.klikli_dev.magicparticleslib.premade.rift.RiftShape;
 
 public record BranchingRiftSegment(RiftShape shape, int parentSegmentIndex, int parentAnchorIndex, int depth, double growthScale) {
     public static final int ROOT_PARENT_SEGMENT = -1;

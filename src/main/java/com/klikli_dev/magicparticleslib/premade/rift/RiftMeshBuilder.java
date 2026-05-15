@@ -2,14 +2,13 @@
 //
 // SPDX-License-Identifier: MIT
 
-package com.klikli_dev.magicparticleslib.client.rift;
+package com.klikli_dev.magicparticleslib.premade.rift;
 
 import com.klikli_dev.magicparticleslib.extrusion.Extrusion;
 import com.klikli_dev.magicparticleslib.extrusion.ExtrusionMesh;
 import com.klikli_dev.magicparticleslib.extrusion.ExtrusionOptions;
 import com.klikli_dev.magicparticleslib.extrusion.JoinStyle;
 import com.klikli_dev.magicparticleslib.extrusion.NormalStyle;
-import com.klikli_dev.magicparticleslib.premade.rift.RiftShape;
 import net.minecraft.world.phys.Vec3;
 
 import java.util.ArrayList;
@@ -31,6 +30,7 @@ public final class RiftMeshBuilder {
             return ExtrusionMesh.EMPTY;
         }
 
+        // Plain rifts wobble outwards from their center so both ends feel equally alive.
         int centerIndex = RiftVisualProfile.centerIndex(shape.points().size(), false);
         double wobbleStrength = RiftVisualProfile.wobbleStrength(visualIntensity);
         ArrayList<Vec3> animatedPath = animatePath(shape.points(), ageInTicks, centerIndex, wobbleStrength);
@@ -43,6 +43,7 @@ public final class RiftMeshBuilder {
         ArrayList<Vec3> animatedPath = new ArrayList<>(sourcePath.size());
         for (int pointIndex = 0; pointIndex < sourcePath.size(); pointIndex++) {
             Vec3 point = sourcePath.get(pointIndex);
+            // Offsetting phase by distance from the center makes the motion travel symmetrically along the rift.
             double phase = RiftVisualProfile.phase(ageInTicks, pointIndex, centerIndex);
             animatedPath.add(point.add(RiftVisualProfile.wobbleOffset(phase, wobbleStrength)));
         }
@@ -54,6 +55,7 @@ public final class RiftMeshBuilder {
         ArrayList<Double> animatedRadii = new ArrayList<>(sourceRadii.size());
         for (int pointIndex = 0; pointIndex < sourceRadii.size(); pointIndex++) {
             double phase = RiftVisualProfile.phase(ageInTicks, pointIndex, centerIndex);
+            // Width pulsing is kept in phase with the positional wobble so the mesh feels coherent.
             double radiusMultiplier = RiftVisualProfile.radiusPulse(phase, wobbleStrength);
             animatedRadii.add(sourceRadii.get(pointIndex) * radiusMultiplier * widthScale);
         }

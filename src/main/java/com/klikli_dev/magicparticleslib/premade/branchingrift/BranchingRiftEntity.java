@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: MIT
 
-package com.klikli_dev.magicparticleslib.premade.rift;
+package com.klikli_dev.magicparticleslib.premade.branchingrift;
 
 import com.mojang.serialization.Codec;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -99,6 +99,7 @@ public class BranchingRiftEntity extends Entity {
     protected void readAdditionalSaveData(ValueInput input) {
         this.entityData.set(SEED, input.read("Seed", Codec.INT).orElse(DEFAULT_SEED));
         int legacySize = input.read("Size", Codec.INT).orElse(DEFAULT_SKELETON_SIZE);
+        // Older saves only had a single size field, so use it as the fallback for the renamed skeleton field.
         this.entityData.set(SKELETON_SIZE, input.read("SkeletonSize", Codec.INT).orElse(legacySize));
         this.entityData.set(VOLUME, input.read("Volume", Codec.FLOAT).orElse((float) legacySize / DEFAULT_SKELETON_SIZE));
         this.entityData.set(VISUAL_INTENSITY, input.read("VisualIntensity", Codec.FLOAT).orElse(DEFAULT_VISUAL_INTENSITY));
@@ -111,6 +112,7 @@ public class BranchingRiftEntity extends Entity {
     @Override
     public void onSyncedDataUpdated(net.minecraft.network.syncher.EntityDataAccessor<?> accessor) {
         if (accessor.equals(SEED) || accessor.equals(SKELETON_SIZE) || accessor.equals(VOLUME) || accessor.equals(VISUAL_INTENSITY) || accessor.equals(BRANCH_COUNT) || accessor.equals(JAGGEDNESS) || accessor.equals(TAPER)) {
+            // The branching mesh is derived entirely from synced parameters, so any change invalidates the cached shape.
             this.regenerateShape();
         }
         super.onSyncedDataUpdated(accessor);
@@ -218,6 +220,7 @@ public class BranchingRiftEntity extends Entity {
             return;
         }
 
+        // The generated bounds are centered around the entity origin, so move them into world space here.
         this.setBoundingBox(this.shape.bounds().move(position));
     }
 }

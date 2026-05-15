@@ -4,9 +4,9 @@
 
 package com.klikli_dev.magicparticleslib;
 
-import com.klikli_dev.magicparticleslib.client.rift.BranchingRiftRenderer;
+import com.klikli_dev.magicparticleslib.premade.branchingrift.BranchingRiftRenderer;
 import com.klikli_dev.magicparticleslib.registry.MPLRenderTypes;
-import com.klikli_dev.magicparticleslib.client.rift.RiftRenderer;
+import com.klikli_dev.magicparticleslib.premade.rift.RiftRenderer;
 import com.klikli_dev.magicparticleslib.example.command.SpawnGlowTrailProjectileClientCommand;
 import com.klikli_dev.magicparticleslib.premade.projectile.glowtrail.GlowTrailProjectileRenderer;
 import com.klikli_dev.magicparticleslib.registry.EntityTypes;

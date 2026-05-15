@@ -2,16 +2,15 @@
 //
 // SPDX-License-Identifier: MIT
 
-package com.klikli_dev.magicparticleslib.client.rift;
+package com.klikli_dev.magicparticleslib.premade.branchingrift;
 
 import com.klikli_dev.magicparticleslib.extrusion.Extrusion;
 import com.klikli_dev.magicparticleslib.extrusion.ExtrusionMesh;
 import com.klikli_dev.magicparticleslib.extrusion.ExtrusionOptions;
 import com.klikli_dev.magicparticleslib.extrusion.JoinStyle;
 import com.klikli_dev.magicparticleslib.extrusion.NormalStyle;
-import com.klikli_dev.magicparticleslib.premade.rift.BranchingRiftShape;
-import com.klikli_dev.magicparticleslib.premade.rift.BranchingRiftSegment;
 import com.klikli_dev.magicparticleslib.premade.rift.RiftShape;
+import com.klikli_dev.magicparticleslib.premade.rift.RiftVisualProfile;
 import net.minecraft.world.phys.Vec3;
 
 import java.util.ArrayList;
@@ -36,6 +35,7 @@ public final class BranchingRiftMeshBuilder {
         ArrayList<List<Vec3>> animatedPaths = new ArrayList<>(shape.segments().size());
         for (int segmentIndex = 0; segmentIndex < shape.segments().size(); segmentIndex++) {
             BranchingRiftSegment segment = shape.segments().get(segmentIndex);
+            // Child segments start from a point on the already-animated parent path, not the static skeleton.
             Vec3 origin = segment.isRoot()
                     ? Vec3.ZERO
                     : animatedPaths.get(segment.parentSegmentIndex()).get(segment.parentAnchorIndex());
@@ -51,6 +51,7 @@ public final class BranchingRiftMeshBuilder {
             return ExtrusionMesh.EMPTY;
         }
 
+        // Branches pulse from their anchor outward so the trunk connection stays visually stable.
         int centerIndex = RiftVisualProfile.centerIndex(shape.points().size(), !segment.isRoot());
         double wobbleStrength = RiftVisualProfile.wobbleStrength(visualIntensity);
         ArrayList<Double> animatedRadii = animateRadii(shape, segment, ageInTicks, centerIndex, wobbleStrength, widthScale, segmentIndex);
@@ -64,12 +65,14 @@ public final class BranchingRiftMeshBuilder {
             return List.of();
         }
 
+        // Deeper branches get slightly calmer motion so the silhouette does not become visual noise.
         double wobbleStrength = RiftVisualProfile.wobbleStrength(visualIntensity) * Math.pow(0.92, segment.depth());
         int centerIndex = RiftVisualProfile.centerIndex(shape.points().size(), !segment.isRoot());
         ArrayList<Vec3> animatedPath = new ArrayList<>(shape.points().size());
         for (int pointIndex = 0; pointIndex < shape.points().size(); pointIndex++) {
             Vec3 point = segment.isRoot() ? shape.points().get(pointIndex) : origin.add(shape.points().get(pointIndex));
             if (!segment.isRoot() && pointIndex == 0) {
+                // Keep the first point exactly on the parent anchor to avoid cracks between segments.
                 animatedPath.add(origin);
                 continue;
             }
@@ -86,6 +89,7 @@ public final class BranchingRiftMeshBuilder {
         for (int pointIndex = 0; pointIndex < shape.widths().size(); pointIndex++) {
             double phase = RiftVisualProfile.phase(ageInTicks, segmentIndex, pointIndex, centerIndex);
             double radiusMultiplier = RiftVisualProfile.radiusPulse(phase, wobbleStrength);
+            // growthScale lets later or deeper branches visibly taper away as the volume budget runs out.
             animatedRadii.add(shape.widths().get(pointIndex) * segment.growthScale() * radiusMultiplier * widthScale);
         }
 

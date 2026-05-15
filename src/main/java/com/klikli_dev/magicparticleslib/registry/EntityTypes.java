@@ -5,7 +5,7 @@
 package com.klikli_dev.magicparticleslib.registry;
 
 import com.klikli_dev.magicparticleslib.MagicParticlesLib;
-import com.klikli_dev.magicparticleslib.premade.rift.BranchingRiftEntity;
+import com.klikli_dev.magicparticleslib.premade.branchingrift.BranchingRiftEntity;
 import com.klikli_dev.magicparticleslib.premade.rift.RiftEntity;
 import com.klikli_dev.magicparticleslib.premade.projectile.glowtrail.GlowTrailProjectile;
 import net.minecraft.core.registries.Registries;

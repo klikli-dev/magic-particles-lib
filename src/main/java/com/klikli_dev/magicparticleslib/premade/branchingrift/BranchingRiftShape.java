@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: MIT
 
-package com.klikli_dev.magicparticleslib.premade.rift;
+package com.klikli_dev.magicparticleslib.premade.branchingrift;
 
 import net.minecraft.world.phys.AABB;
 
@@ -20,6 +20,7 @@ public record BranchingRiftShape(List<BranchingRiftSegment> segments, AABB bound
     }
 
     public BranchingRiftSegment rootSegment() {
+        // The generator always inserts the trunk first, so index 0 is the root when present.
         return this.isEmpty() ? BranchingRiftSegment.EMPTY : this.segments.get(0);
     }
 }

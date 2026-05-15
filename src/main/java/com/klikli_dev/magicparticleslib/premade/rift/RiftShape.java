@@ -13,6 +13,7 @@ public record RiftShape(List<Vec3> points, List<Double> widths, AABB bounds) {
     public static final RiftShape EMPTY = new RiftShape(List.of(), List.of(), new AABB(0.0, 0.0, 0.0, 0.0, 0.0, 0.0));
 
     public RiftShape {
+        // Copy eagerly so generated shapes stay immutable after construction.
         points = List.copyOf(points);
         widths = List.copyOf(widths);
     }

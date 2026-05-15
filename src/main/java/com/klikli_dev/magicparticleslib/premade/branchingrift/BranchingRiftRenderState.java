@@ -2,9 +2,8 @@
 //
 // SPDX-License-Identifier: MIT
 
-package com.klikli_dev.magicparticleslib.client.rift;
+package com.klikli_dev.magicparticleslib.premade.branchingrift;
 
-import com.klikli_dev.magicparticleslib.premade.rift.BranchingRiftShape;
 import net.minecraft.client.renderer.entity.state.EntityRenderState;
 
 public class BranchingRiftRenderState extends EntityRenderState {

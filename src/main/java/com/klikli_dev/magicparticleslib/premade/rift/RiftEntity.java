@@ -90,16 +90,10 @@ public class RiftEntity extends Entity {
         this.regenerateShape();
     }
 
-//    @Override
-//    public void setPos(double x, double y, double z) {
-//        super.setPos(x, y, z);
-//        this.updateBoundsFromShape();
-    //when uncommented, this is called in entity constructor, at which point shape is null, so updatebounds causes nullptrerror
-//    }
-
     @Override
     public void onSyncedDataUpdated(net.minecraft.network.syncher.EntityDataAccessor<?> accessor) {
         if (accessor.equals(SEED) || accessor.equals(SIZE) || accessor.equals(VISUAL_INTENSITY)) {
+            // The rendered mesh is fully derived from synced parameters, so any change invalidates the cached shape.
             this.regenerateShape();
         }
         super.onSyncedDataUpdated(accessor);
@@ -166,6 +160,7 @@ public class RiftEntity extends Entity {
             return;
         }
 
+        // The generated shape is local to the entity origin, so shift its bounds into world space here.
         this.setBoundingBox(this.shape.bounds().move(position));
     }
 

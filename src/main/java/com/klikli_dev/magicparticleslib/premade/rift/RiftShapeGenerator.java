@@ -41,6 +41,7 @@ public final class RiftShapeGenerator {
         points.add(Vec3.ZERO);
         widths.add(initialWidth);
 
+        // Grow both halves away from the center so the final path is symmetric around the spawn point.
         for (int step = 0; step < mainSteps; step++) {
             positiveDirection = perturbDirection(positiveDirection, random);
             negativeDirection = perturbDirection(negativeDirection, random);
@@ -55,6 +56,7 @@ public final class RiftShapeGenerator {
             widths.add(width);
         }
 
+        // Add a short zero-width tip on each end so the extrusion closes into a cleaner point.
         negativePosition = negativePosition.add(negativeDirection.scale(TIP_STEP_LENGTH));
         positivePosition = positivePosition.add(positiveDirection.scale(TIP_STEP_LENGTH));
         points.add(0, negativePosition);
@@ -75,6 +77,7 @@ public final class RiftShapeGenerator {
     }
 
     private static Vec3 perturbDirection(Vec3 direction, RandomSource random) {
+        // Rotate around two axes instead of replacing the vector outright to preserve smooth forward growth.
         Vec3 perturbed = direction.xRot((float) (random.nextGaussian() * ANGLE_SCALE)).yRot((float) (random.nextGaussian() * ANGLE_SCALE));
         if (perturbed.lengthSqr() <= DEGENERATE_DIRECTION_EPSILON) {
             return direction;
@@ -96,6 +99,7 @@ public final class RiftShapeGenerator {
             Vec3 point = points.get(index);
             double width = widths.get(index);
             if (first) {
+                // Seed the bounds from the first point so later iterations can use simple min/max expansion.
                 minX = point.x - width;
                 minY = point.y - width;
                 minZ = point.z - width;

@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: MIT
 
-package com.klikli_dev.magicparticleslib.client.rift;
+package com.klikli_dev.magicparticleslib.premade.rift;
 
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
@@ -39,6 +39,7 @@ public final class RiftVisualProfile {
     }
 
     public static int centerIndex(int pointCount, boolean anchoredAtStart) {
+        // Branch segments are anchored at their first point, while standalone rifts should pulse from the middle.
         return anchoredAtStart ? 0 : pointCount / 2;
     }
 
@@ -51,6 +52,7 @@ public final class RiftVisualProfile {
     }
 
     public static double phase(float ageInTicks, int segmentIndex, int pointIndex, int centerIndex) {
+        // A per-segment offset keeps child branches from wobbling in perfect lockstep with the trunk.
         return phase(ageInTicks, pointIndex, centerIndex) + segmentIndex * BRANCH_PHASE_OFFSET;
     }
 

@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: MIT
 
-package com.klikli_dev.magicparticleslib.client.rift;
+package com.klikli_dev.magicparticleslib.premade.rift;
 
 import com.klikli_dev.magicparticleslib.extrusion.ExtrusionMesh;
 import com.klikli_dev.magicparticleslib.premade.rift.RiftEntity;
@@ -42,6 +42,7 @@ public class RiftRenderer extends EntityRenderer<RiftEntity, RiftRenderState> {
     @Override
     public void submit(RiftRenderState state, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, CameraRenderState camera) {
         if (!state.shape.isEmpty()) {
+            // Render several widened halo shells first, then a final core pass to give the rift some depth.
             for (int passIndex = 0; passIndex < RiftVisualProfile.passCount(); passIndex++) {
                 ExtrusionMesh mesh = RiftMeshBuilder.build(
                         state.shape,
@@ -56,6 +57,7 @@ public class RiftRenderer extends EntityRenderer<RiftEntity, RiftRenderState> {
                 submitNodeCollector.submitCustomGeometry(
                         poseStack,
                         RiftVisualProfile.haloPass(passIndex) ? MPLRenderTypes.halo() : MPLRenderTypes.portal(),
+                        // The mesh is already built in local space, so we only need to stream its vertices here.
                         (pose, consumer) -> mesh.emit(consumer, pose, state.lightCoords, OverlayTexture.NO_OVERLAY)
                 );
             }

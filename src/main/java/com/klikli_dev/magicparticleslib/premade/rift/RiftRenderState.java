@@ -2,9 +2,8 @@
 //
 // SPDX-License-Identifier: MIT
 
-package com.klikli_dev.magicparticleslib.client.rift;
+package com.klikli_dev.magicparticleslib.premade.rift;
 
-import com.klikli_dev.magicparticleslib.premade.rift.RiftShape;
 import net.minecraft.client.renderer.entity.state.EntityRenderState;
 
 public class RiftRenderState extends EntityRenderState {

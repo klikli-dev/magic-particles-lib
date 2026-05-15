@@ -2,7 +2,10 @@
 //
 // SPDX-License-Identifier: MIT
 
-package com.klikli_dev.magicparticleslib.premade.rift;
+package com.klikli_dev.magicparticleslib.premade.branchingrift;
+
+import com.klikli_dev.magicparticleslib.premade.rift.RiftShape;
+import com.klikli_dev.magicparticleslib.premade.rift.RiftShapeGenerator;
 
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.phys.AABB;
@@ -23,6 +26,7 @@ public final class BranchingRiftShapeGenerator {
     }
 
     public static BranchingRiftShape generate(int seed, int skeletonSize, float volume, int branchCount, float jaggedness, float taper) {
+        // Reuse the plain rift generator for the trunk so both variants share the same base silhouette language.
         RiftShape trunkSkeleton = RiftShapeGenerator.generate(seed, skeletonSize);
         if (trunkSkeleton.isEmpty()) {
             return BranchingRiftShape.EMPTY;
@@ -42,6 +46,7 @@ public final class BranchingRiftShapeGenerator {
             int parentSegmentIndex = pickParentSegmentIndex(branchIndex, segments.size(), random);
             BranchingRiftSegment parentSegment = segments.get(parentSegmentIndex);
             List<Vec3> parentAbsolutePath = absolutePaths.get(parentSegmentIndex);
+            // Branch anchors stay away from the segment endpoints so the attachment has room to taper.
             int anchorIndex = pickAnchorIndex(parentSegment.shape(), random);
             RiftShape branch = generateBranch(parentSegment.shape(), anchorIndex, skeletonSize, random, jaggedness, taper, parentSegment.depth());
             if (branch.isEmpty()) {
@@ -56,6 +61,7 @@ public final class BranchingRiftShapeGenerator {
     }
 
     private static long mixSeed(int seed, int branchIndex) {
+        // This mix spreads sequential branch indices over the full bit range, preventing visibly similar siblings.
         long mixed = (((long) seed) << 32) ^ (0x9E3779B97F4A7C15L + branchIndex * 0xBF58476D1CE4E5B9L);
         mixed ^= (mixed >>> 30);
         mixed *= 0xBF58476D1CE4E5B9L;
@@ -69,6 +75,7 @@ public final class BranchingRiftShapeGenerator {
     }
 
     private static double branchGrowthScale(float volume, int branchOrder, int depth) {
+        // Later and deeper branches consume more of the available volume budget and therefore render thinner.
         return Math.max(0.0, volume - (branchOrder + 1) * BRANCH_GROWTH_STEP - depth * SUB_BRANCH_GROWTH_STEP);
     }
 
@@ -79,6 +86,7 @@ public final class BranchingRiftShapeGenerator {
 
         int priorBranchCount = existingSegmentCount - 1;
         double subBranchChance = Math.min(0.8, 0.3 + branchIndex * 0.08);
+        // As more branches are added, bias some new growth toward existing branches to build a tree instead of a starburst.
         if (priorBranchCount > 0 && random.nextDouble() < subBranchChance) {
             return 1 + random.nextInt(priorBranchCount);
         }
@@ -94,6 +102,7 @@ public final class BranchingRiftShapeGenerator {
             return minIndex;
         }
 
+        // Favor the middle stretch of the parent path, then add jitter so multiple branches do not stack perfectly.
         double fraction = 0.2 + random.nextDouble() * 0.65;
         int baseIndex = minIndex + (int) Math.round((maxIndex - minIndex) * fraction);
         int jitter = Math.max(1, (maxIndex - minIndex) / 8);
@@ -105,6 +114,7 @@ public final class BranchingRiftShapeGenerator {
         Vec3 tangent = tangentAt(parent.points(), anchorIndex);
         Vec3 lateral = perpendicularDirection(random, tangent);
         double side = random.nextBoolean() ? 1.0 : -1.0;
+        // Blend outward and forward motion so branches peel off the trunk instead of turning into right-angle spikes.
         Vec3 direction = lateral.scale(side * (0.75 + random.nextDouble() * 0.45)).add(tangent.scale(0.15 + random.nextDouble() * 0.35));
         if (direction.lengthSqr() <= DEGENERATE_DIRECTION_EPSILON) {
             direction = lateral.scale(side);
@@ -123,6 +133,7 @@ public final class BranchingRiftShapeGenerator {
         widths.add(initialWidth);
 
         Vec3 current = Vec3.ZERO;
+        // Jaggedness scales the random turn angle, while depth slightly increases variation on child branches.
         float angleScale = (float) (BASE_ANGLE_SCALE * Math.exp(jaggedness * 0.35) * (1.0 + depth * 0.08));
         for (int step = 0; step < steps; step++) {
             direction = perturbDirection(direction, random, angleScale);
@@ -153,6 +164,7 @@ public final class BranchingRiftShapeGenerator {
 
     private static Vec3 perpendicularDirection(RandomSource random, Vec3 tangent) {
         Vec3 candidate = initialDirection(random);
+        // Project away the tangent so the new branch starts from a genuinely sideways direction.
         Vec3 perpendicular = candidate.subtract(tangent.scale(candidate.dot(tangent)));
         if (perpendicular.lengthSqr() <= DEGENERATE_DIRECTION_EPSILON) {
             perpendicular = tangent.cross(new Vec3(0.0, 1.0, 0.0));
@@ -193,6 +205,7 @@ public final class BranchingRiftShapeGenerator {
     }
 
     private static AABB computeBounds(List<BranchingRiftSegment> segments, List<List<Vec3>> absolutePaths) {
+        // Bounds are accumulated in absolute space because child segments are stored relative to their anchor.
         AABB firstBounds = computeSegmentBounds(absolutePaths.get(0), segments.get(0).shape().widths(), segments.get(0).growthScale());
         double minX = firstBounds.minX;
         double minY = firstBounds.minY;

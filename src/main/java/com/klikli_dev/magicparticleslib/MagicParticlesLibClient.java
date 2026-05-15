@@ -5,7 +5,7 @@
 package com.klikli_dev.magicparticleslib;
 
 import com.klikli_dev.magicparticleslib.client.rift.BranchingRiftRenderer;
-import com.klikli_dev.magicparticleslib.client.rift.RiftRenderTypes;
+import com.klikli_dev.magicparticleslib.registry.MPLRenderTypes;
 import com.klikli_dev.magicparticleslib.client.rift.RiftRenderer;
 import com.klikli_dev.magicparticleslib.example.command.SpawnGlowTrailProjectileClientCommand;
 import com.klikli_dev.magicparticleslib.premade.projectile.glowtrail.GlowTrailProjectileRenderer;
@@ -35,7 +35,7 @@ public class MagicParticlesLibClient {
     }
 
     private static void registerRenderPipelines(RegisterRenderPipelinesEvent event) {
-        RiftRenderTypes.register(event);
+        MPLRenderTypes.register(event);
     }
 
     private static void registerClientCommands(RegisterClientCommandsEvent event) {

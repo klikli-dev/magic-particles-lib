@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: MIT
 
-package com.klikli_dev.magicparticleslib.client.rift;
+package com.klikli_dev.magicparticleslib.registry;
 
 import com.klikli_dev.magicparticleslib.MagicParticlesLib;
 import com.mojang.blaze3d.pipeline.BlendFunction;
@@ -23,7 +23,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.function.Function;
 
-public final class RiftRenderTypes {
+public final class MPLRenderTypes {
     private static final Method RENDER_TYPE_CREATE = renderTypeCreateMethod();
     private static final Identifier SHADER_ID = Identifier.fromNamespaceAndPath(MagicParticlesLib.MODID, "core/rift");
     private static final Identifier PORTAL_TEXTURE = Identifier.fromNamespaceAndPath("minecraft", "textures/entity/end_portal/end_portal.png");
@@ -50,10 +50,10 @@ public final class RiftRenderTypes {
             .withDepthStencilState(new DepthStencilState(CompareOp.LESS_THAN_OR_EQUAL, true))
             .build();
 
-    private static final Function<Identifier, RenderType> HALO = Util.memoize(RiftRenderTypes::createHalo);
-    private static final Function<Identifier, RenderType> PORTAL = Util.memoize(RiftRenderTypes::createPortal);
+    private static final Function<Identifier, RenderType> HALO = Util.memoize(MPLRenderTypes::createHalo);
+    private static final Function<Identifier, RenderType> PORTAL = Util.memoize(MPLRenderTypes::createPortal);
 
-    private RiftRenderTypes() {
+    private MPLRenderTypes() {
     }
 
     public static void register(RegisterRenderPipelinesEvent event) {

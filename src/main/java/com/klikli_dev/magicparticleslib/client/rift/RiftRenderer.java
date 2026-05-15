@@ -6,6 +6,7 @@ package com.klikli_dev.magicparticleslib.client.rift;
 
 import com.klikli_dev.magicparticleslib.extrusion.ExtrusionMesh;
 import com.klikli_dev.magicparticleslib.premade.rift.RiftEntity;
+import com.klikli_dev.magicparticleslib.registry.MPLRenderTypes;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.EntityRenderer;
@@ -54,7 +55,7 @@ public class RiftRenderer extends EntityRenderer<RiftEntity, RiftRenderState> {
 
                 submitNodeCollector.submitCustomGeometry(
                         poseStack,
-                        RiftVisualProfile.haloPass(passIndex) ? RiftRenderTypes.halo() : RiftRenderTypes.portal(),
+                        RiftVisualProfile.haloPass(passIndex) ? MPLRenderTypes.halo() : MPLRenderTypes.portal(),
                         (pose, consumer) -> mesh.emit(consumer, pose, state.lightCoords, OverlayTexture.NO_OVERLAY)
                 );
             }

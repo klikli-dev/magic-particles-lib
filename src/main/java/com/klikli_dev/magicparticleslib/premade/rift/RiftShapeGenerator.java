@@ -27,10 +27,14 @@ public final class RiftShapeGenerator {
         }
 
         RandomSource random = RandomSource.create(seed);
+        // Larger requested sizes translate into more center-out growth steps.
         int mainSteps = Mth.ceil(size / 3.0F);
+        // Width scales gently with size so large rifts feel fuller without exploding in thickness.
         double initialWidth = size / 300.0;
+        // Each growth step consumes an equal slice of width budget until the ends taper out.
         double widthStep = initialWidth / (mainSteps + 1.0);
 
+        // The whole rift is generated from one random heading, then mirrored by reversing it.
         Vec3 positiveDirection = initialDirection(random);
         Vec3 negativeDirection = positiveDirection.reverse();
         Vec3 positivePosition = Vec3.ZERO;
@@ -43,13 +47,17 @@ public final class RiftShapeGenerator {
 
         // Grow both halves away from the center so the final path is symmetric around the spawn point.
         for (int step = 0; step < mainSteps; step++) {
+            // Perturbation bends the path a little each step; increasing ANGLE_SCALE makes rifts more chaotic.
             positiveDirection = perturbDirection(positiveDirection, random);
             negativeDirection = perturbDirection(negativeDirection, random);
 
+            // Step length controls overall rift length. Larger values stretch the silhouette quickly.
             positivePosition = positivePosition.add(positiveDirection.scale(MAIN_STEP_LENGTH));
             negativePosition = negativePosition.add(negativeDirection.scale(MAIN_STEP_LENGTH));
 
+            // Width shrinks toward the ends so the later extrusion has a natural taper.
             double width = Math.max(0.0, initialWidth - widthStep * (step + 1));
+            // Insert the negative half at the front so the final list runs from one tip to the other.
             points.add(0, negativePosition);
             widths.add(0, width);
             points.add(positivePosition);
@@ -68,8 +76,10 @@ public final class RiftShapeGenerator {
     }
 
     private static Vec3 initialDirection(RandomSource random) {
+        // Gaussian components bias directions toward smooth, organic variation instead of axis-aligned picks.
         Vec3 direction = new Vec3(random.nextGaussian(), random.nextGaussian(), random.nextGaussian());
         if (direction.lengthSqr() <= DEGENERATE_DIRECTION_EPSILON) {
+            // Fallback prevents divide-by-zero normalization if the random vector is effectively empty.
             return new Vec3(0.0, 1.0, 0.0);
         }
 
@@ -78,8 +88,10 @@ public final class RiftShapeGenerator {
 
     private static Vec3 perturbDirection(Vec3 direction, RandomSource random) {
         // Rotate around two axes instead of replacing the vector outright to preserve smooth forward growth.
+        // Raising ANGLE_SCALE produces sharper bends; lowering it makes the rift straighter.
         Vec3 perturbed = direction.xRot((float) (random.nextGaussian() * ANGLE_SCALE)).yRot((float) (random.nextGaussian() * ANGLE_SCALE));
         if (perturbed.lengthSqr() <= DEGENERATE_DIRECTION_EPSILON) {
+            // Keep the previous direction if the perturbation collapses toward zero.
             return direction;
         }
 
@@ -110,6 +122,7 @@ public final class RiftShapeGenerator {
                 continue;
             }
 
+            // Width expands each point into a local box because the rendered mesh extends equally in all directions.
             minX = Math.min(minX, point.x - width);
             minY = Math.min(minY, point.y - width);
             minZ = Math.min(minZ, point.z - width);

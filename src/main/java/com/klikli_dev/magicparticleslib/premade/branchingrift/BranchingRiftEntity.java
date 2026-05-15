@@ -110,7 +110,7 @@ public class BranchingRiftEntity extends Entity {
     }
 
     @Override
-    public void onSyncedDataUpdated(net.minecraft.network.syncher.EntityDataAccessor<?> accessor) {
+    public void onSyncedDataUpdated(EntityDataAccessor<?> accessor) {
         if (accessor.equals(SEED) || accessor.equals(SKELETON_SIZE) || accessor.equals(VOLUME) || accessor.equals(VISUAL_INTENSITY) || accessor.equals(BRANCH_COUNT) || accessor.equals(JAGGEDNESS) || accessor.equals(TAPER)) {
             // The branching mesh is derived entirely from synced parameters, so any change invalidates the cached shape.
             this.regenerateShape();
@@ -209,6 +209,7 @@ public class BranchingRiftEntity extends Entity {
     }
 
     private void regenerateShape() {
+        // Cache the generated branch hierarchy until synced inputs change.
         this.shape = BranchingRiftShapeGenerator.generate(this.seed(), this.skeletonSize(), this.volume(), this.branchCount(), this.jaggedness(), this.taper());
         this.updateBoundsFromShape();
     }

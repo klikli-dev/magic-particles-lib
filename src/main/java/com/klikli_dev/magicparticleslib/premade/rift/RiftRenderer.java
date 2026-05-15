@@ -44,6 +44,7 @@ public class RiftRenderer extends EntityRenderer<RiftEntity, RiftRenderState> {
         if (!state.shape.isEmpty()) {
             // Render several widened halo shells first, then a final core pass to give the rift some depth.
             for (int passIndex = 0; passIndex < RiftVisualProfile.passCount(); passIndex++) {
+                // Every pass rebuilds the same animated spine with a different width multiplier.
                 ExtrusionMesh mesh = RiftMeshBuilder.build(
                         state.shape,
                         state.ageInTicks,
@@ -56,6 +57,7 @@ public class RiftRenderer extends EntityRenderer<RiftEntity, RiftRenderState> {
 
                 submitNodeCollector.submitCustomGeometry(
                         poseStack,
+                        // Halo passes use the softer additive pipeline; the last pass uses the brighter portal core.
                         RiftVisualProfile.haloPass(passIndex) ? MPLRenderTypes.halo() : MPLRenderTypes.portal(),
                         // The mesh is already built in local space, so we only need to stream its vertices here.
                         (pose, consumer) -> mesh.emit(consumer, pose, state.lightCoords, OverlayTexture.NO_OVERLAY)

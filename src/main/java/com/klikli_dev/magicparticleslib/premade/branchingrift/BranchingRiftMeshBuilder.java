@@ -39,6 +39,7 @@ public final class BranchingRiftMeshBuilder {
             Vec3 origin = segment.isRoot()
                     ? Vec3.ZERO
                     : animatedPaths.get(segment.parentSegmentIndex()).get(segment.parentAnchorIndex());
+            // Ordering matters: parents must be animated before children so anchor inheritance stays crack-free.
             animatedPaths.add(animatePath(segment, origin, ageInTicks, visualIntensity, segmentIndex));
         }
 
@@ -56,6 +57,7 @@ public final class BranchingRiftMeshBuilder {
         double wobbleStrength = RiftVisualProfile.wobbleStrength(visualIntensity);
         ArrayList<Double> animatedRadii = animateRadii(shape, segment, ageInTicks, centerIndex, wobbleStrength, widthScale, segmentIndex);
 
+        // The path is already absolute here, but radii are recomputed per pass to preserve halo/core thickness differences.
         return Extrusion.engine().polyCone(animatedPath, List.copyOf(animatedRadii), OPTIONS);
     }
 
@@ -70,6 +72,7 @@ public final class BranchingRiftMeshBuilder {
         int centerIndex = RiftVisualProfile.centerIndex(shape.points().size(), !segment.isRoot());
         ArrayList<Vec3> animatedPath = new ArrayList<>(shape.points().size());
         for (int pointIndex = 0; pointIndex < shape.points().size(); pointIndex++) {
+            // Non-root points are stored relative to the parent anchor, so shift them into the animated parent frame first.
             Vec3 point = segment.isRoot() ? shape.points().get(pointIndex) : origin.add(shape.points().get(pointIndex));
             if (!segment.isRoot() && pointIndex == 0) {
                 // Keep the first point exactly on the parent anchor to avoid cracks between segments.
@@ -78,6 +81,7 @@ public final class BranchingRiftMeshBuilder {
             }
 
             double phase = RiftVisualProfile.phase(ageInTicks, segmentIndex, pointIndex, centerIndex);
+            // segmentIndex adds a per-branch phase offset so the whole tree does not breathe in lockstep.
             animatedPath.add(point.add(RiftVisualProfile.wobbleOffset(phase, wobbleStrength)));
         }
 
@@ -90,6 +94,7 @@ public final class BranchingRiftMeshBuilder {
             double phase = RiftVisualProfile.phase(ageInTicks, segmentIndex, pointIndex, centerIndex);
             double radiusMultiplier = RiftVisualProfile.radiusPulse(phase, wobbleStrength);
             // growthScale lets later or deeper branches visibly taper away as the volume budget runs out.
+            // widthScale is the render-pass shell size; growthScale is structural thickness baked into the branch hierarchy.
             animatedRadii.add(shape.widths().get(pointIndex) * segment.growthScale() * radiusMultiplier * widthScale);
         }
 

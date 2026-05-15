@@ -32,10 +32,12 @@ public final class RiftMeshBuilder {
 
         // Plain rifts wobble outwards from their center so both ends feel equally alive.
         int centerIndex = RiftVisualProfile.centerIndex(shape.points().size(), false);
+        // visualIntensity only affects animation here, so widening the mesh still stays deterministic per pass.
         double wobbleStrength = RiftVisualProfile.wobbleStrength(visualIntensity);
         ArrayList<Vec3> animatedPath = animatePath(shape.points(), ageInTicks, centerIndex, wobbleStrength);
         ArrayList<Double> animatedRadii = animateRadii(shape.widths(), ageInTicks, centerIndex, wobbleStrength, widthScale);
 
+        // polyCone interprets each point/radius pair as a tube spine sample; path and radii must stay aligned.
         return Extrusion.engine().polyCone(List.copyOf(animatedPath), List.copyOf(animatedRadii), OPTIONS);
     }
 
@@ -45,6 +47,7 @@ public final class RiftMeshBuilder {
             Vec3 point = sourcePath.get(pointIndex);
             // Offsetting phase by distance from the center makes the motion travel symmetrically along the rift.
             double phase = RiftVisualProfile.phase(ageInTicks, pointIndex, centerIndex);
+            // Higher wobbleStrength increases displacement on all axes because wobbleOffset scales its sine waves.
             animatedPath.add(point.add(RiftVisualProfile.wobbleOffset(phase, wobbleStrength)));
         }
 
@@ -57,6 +60,7 @@ public final class RiftMeshBuilder {
             double phase = RiftVisualProfile.phase(ageInTicks, pointIndex, centerIndex);
             // Width pulsing is kept in phase with the positional wobble so the mesh feels coherent.
             double radiusMultiplier = RiftVisualProfile.radiusPulse(phase, wobbleStrength);
+            // widthScale is the render-pass multiplier; changing it affects halo/core layering, not base shape data.
             animatedRadii.add(sourceRadii.get(pointIndex) * radiusMultiplier * widthScale);
         }
 

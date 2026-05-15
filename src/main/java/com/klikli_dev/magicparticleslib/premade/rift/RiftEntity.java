@@ -91,7 +91,7 @@ public class RiftEntity extends Entity {
     }
 
     @Override
-    public void onSyncedDataUpdated(net.minecraft.network.syncher.EntityDataAccessor<?> accessor) {
+    public void onSyncedDataUpdated(EntityDataAccessor<?> accessor) {
         if (accessor.equals(SEED) || accessor.equals(SIZE) || accessor.equals(VISUAL_INTENSITY)) {
             // The rendered mesh is fully derived from synced parameters, so any change invalidates the cached shape.
             this.regenerateShape();
@@ -149,6 +149,7 @@ public class RiftEntity extends Entity {
     }
 
     private void regenerateShape() {
+        // The entity keeps a precomputed local-space skeleton so rendering does not have to regenerate geometry every frame.
         this.shape = RiftShapeGenerator.generate(this.seed(), this.size());
         this.updateBoundsFromShape();
     }

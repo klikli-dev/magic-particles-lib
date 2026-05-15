@@ -33,6 +33,7 @@ public final class RiftVisualProfile {
     }
 
     public static double widthScale(int passIndex) {
+        // The first passes intentionally overdraw a fatter shell; changing these constants directly changes glow thickness.
         return haloPass(passIndex)
                 ? HALO_START_WIDTH_SCALE + HALO_WIDTH_STEP * passIndex
                 : CORE_WIDTH_SCALE;
@@ -44,10 +45,12 @@ public final class RiftVisualProfile {
     }
 
     public static double wobbleStrength(float visualIntensity) {
+        // visualIntensity is a straight multiplier, so doubling it doubles both positional wobble and width pulse amplitude.
         return BASE_WOBBLE_STRENGTH * visualIntensity;
     }
 
     public static double phase(float ageInTicks, int pointIndex, int centerIndex) {
+        // PHASE_SPACING controls how quickly motion shifts across the path: larger values create a slower travelling wave.
         return ageInTicks + Math.abs(pointIndex - centerIndex) * PHASE_SPACING;
     }
 
@@ -57,6 +60,7 @@ public final class RiftVisualProfile {
     }
 
     public static Vec3 wobbleOffset(double phase, double wobbleStrength) {
+        // Different axis periods stop the motion from looping as a simple circle.
         return new Vec3(
                 Mth.sin((float) (phase / X_WOBBLE_PERIOD)) * wobbleStrength,
                 Mth.sin((float) (phase / Y_WOBBLE_PERIOD)) * wobbleStrength,
@@ -65,6 +69,7 @@ public final class RiftVisualProfile {
     }
 
     public static double radiusPulse(double phase, double wobbleStrength) {
+        // WIDTH_PULSE_PERIOD sets how quickly the tube breathes; lower values make the width flicker faster.
         return 1.0 + Mth.sin((float) (phase / WIDTH_PULSE_PERIOD)) * wobbleStrength;
     }
 }

@@ -47,6 +47,7 @@ public class BranchingRiftRenderer extends EntityRenderer<BranchingRiftEntity, B
             // Animate the whole tree once so child branches inherit their parent's already-wobbled anchor position.
             List<List<Vec3>> animatedPaths = BranchingRiftMeshBuilder.animatePaths(state.shape, state.ageInTicks, state.visualIntensity);
             for (int passIndex = 0; passIndex < RiftVisualProfile.passCount(); passIndex++) {
+                // Like plain rifts, each pass only changes shell width and render pipeline, not topology.
                 for (int segmentIndex = 0; segmentIndex < state.shape.segments().size(); segmentIndex++) {
                     BranchingRiftSegment segment = state.shape.segments().get(segmentIndex);
                     ExtrusionMesh mesh = BranchingRiftMeshBuilder.build(
@@ -63,6 +64,7 @@ public class BranchingRiftRenderer extends EntityRenderer<BranchingRiftEntity, B
 
                     submitNodeCollector.submitCustomGeometry(
                             poseStack,
+                            // Halo passes soften the silhouette before the portal core pass sharpens the center.
                             RiftVisualProfile.haloPass(passIndex) ? MPLRenderTypes.halo() : MPLRenderTypes.portal(),
                             // Each segment shares the same render pipeline; only the generated mesh differs.
                             (pose, consumer) -> mesh.emit(consumer, pose, state.lightCoords, OverlayTexture.NO_OVERLAY)

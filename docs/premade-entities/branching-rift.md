@@ -2,6 +2,8 @@
 
 The branching rift is a variant of the [Rift](./rift.md). It uses multiple overlapping polycones to create branches.
 
+![branching-rift.png](branching-rift.png)
+
 For a fixed `Seed`, the sample is growth-stable:
 
 - increasing `BranchCount` adds one deterministic new branch at a time

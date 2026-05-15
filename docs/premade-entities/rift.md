@@ -2,6 +2,8 @@
 
 The rift showcases how to use extrusion to get an effect that looks like the rifts used in Thaumcraft. To use it in your mod you most likely should create a copy of the RiftEntity class and modify it to your needs, the premade entity does not have any in-game effects, it only acts as an "anchor" for the rift renderer.
 
+![rift.jpg](rift.jpg)
+
 ## Registry id
 
 `magicparticleslib:rift`

@@ -4,6 +4,9 @@
 
 package com.klikli_dev.magicparticleslib;
 
+import com.klikli_dev.magicparticleslib.premade.branchingrift.BranchingRiftRenderer;
+import com.klikli_dev.magicparticleslib.registry.MPLRenderTypes;
+import com.klikli_dev.magicparticleslib.premade.rift.RiftRenderer;
 import com.klikli_dev.magicparticleslib.example.command.SpawnGlowTrailProjectileClientCommand;
 import com.klikli_dev.magicparticleslib.premade.projectile.glowtrail.GlowTrailProjectileRenderer;
 import com.klikli_dev.magicparticleslib.registry.EntityTypes;
@@ -19,14 +22,20 @@ import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.RegisterClientCommandsEvent;
 import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 import net.neoforged.neoforge.client.event.RegisterParticleProvidersEvent;
+import net.neoforged.neoforge.client.event.RegisterRenderPipelinesEvent;
 
 @Mod(value = MagicParticlesLib.MODID, dist = Dist.CLIENT)
 public class MagicParticlesLibClient {
     public MagicParticlesLibClient(IEventBus modEventBus, ModContainer container) {
+        modEventBus.addListener(MagicParticlesLibClient::registerRenderPipelines);
         modEventBus.addListener(MagicParticlesLibClient::registerEntityRenderers);
         modEventBus.addListener(MagicParticlesLibClient::registerParticleProviders);
         NeoForge.EVENT_BUS.addListener(MagicParticlesLibClient::registerClientCommands);
         container.registerExtensionPoint(IConfigScreenFactory.class, ConfigurationScreen::new);
+    }
+
+    private static void registerRenderPipelines(RegisterRenderPipelinesEvent event) {
+        MPLRenderTypes.register(event);
     }
 
     private static void registerClientCommands(RegisterClientCommandsEvent event) {
@@ -35,6 +44,8 @@ public class MagicParticlesLibClient {
 
     private static void registerEntityRenderers(EntityRenderersEvent.RegisterRenderers event) {
         event.registerEntityRenderer(EntityTypes.GLOW_TRAIL_PROJECTILE.get(), GlowTrailProjectileRenderer::new);
+        event.registerEntityRenderer(EntityTypes.RIFT.get(), RiftRenderer::new);
+        event.registerEntityRenderer(EntityTypes.BRANCHING_RIFT.get(), BranchingRiftRenderer::new);
     }
 
     private static void registerParticleProviders(RegisterParticleProvidersEvent event) {

@@ -5,6 +5,8 @@
 package com.klikli_dev.magicparticleslib.registry;
 
 import com.klikli_dev.magicparticleslib.MagicParticlesLib;
+import com.klikli_dev.magicparticleslib.premade.branchingrift.BranchingRiftEntity;
+import com.klikli_dev.magicparticleslib.premade.rift.RiftEntity;
 import com.klikli_dev.magicparticleslib.premade.projectile.glowtrail.GlowTrailProjectile;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
@@ -27,6 +29,22 @@ public final class EntityTypes {
                     .noSave()
                     .noLootTable()
                     .fireImmune()
+                    .clientTrackingRange(10)
+                    .updateInterval(1)
+    );
+
+    public static final Supplier<EntityType<RiftEntity>> RIFT = register(
+            "rift",
+            EntityType.Builder.<RiftEntity>of(RiftEntity::new, MobCategory.MISC)
+                    .sized(4.0F, 4.0F)
+                    .clientTrackingRange(10)
+                    .updateInterval(1)
+    );
+
+    public static final Supplier<EntityType<BranchingRiftEntity>> BRANCHING_RIFT = register(
+            "branching_rift",
+            EntityType.Builder.<BranchingRiftEntity>of(BranchingRiftEntity::new, MobCategory.MISC)
+                    .sized(6.0F, 6.0F)
                     .clientTrackingRange(10)
                     .updateInterval(1)
     );

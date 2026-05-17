@@ -55,7 +55,7 @@ dependencies {
  
     ...
     
-        jarJar(implementation(group: "com.klikli_dev", name: "magicparticleslib-${minecraft_version}-neoforge")) {
+    jarJar(implementation(group: "com.klikli_dev", name: "magicparticleslib-${minecraft_version}-neoforge")) {
         version {
             prefer magic_particles_lib_version
         }

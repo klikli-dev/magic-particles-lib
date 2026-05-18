@@ -2,10 +2,10 @@
 //
 // SPDX-License-Identifier: MIT
 
-package com.klikli_dev.magicparticleslib.premade.branchingrift;
+package com.klikli_dev.magicparticleslib.premade.entity.branchingrift;
 
-import com.klikli_dev.magicparticleslib.premade.rift.RiftShape;
-import com.klikli_dev.magicparticleslib.premade.rift.RiftShapeGenerator;
+import com.klikli_dev.magicparticleslib.premade.entity.rift.RiftShape;
+import com.klikli_dev.magicparticleslib.premade.entity.rift.RiftShapeGenerator;
 
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.phys.AABB;

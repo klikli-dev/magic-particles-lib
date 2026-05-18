@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: MIT
 
-package com.klikli_dev.magicparticleslib.premade.rift;
+package com.klikli_dev.magicparticleslib.premade.entity.rift;
 
 import com.klikli_dev.magicparticleslib.extrusion.Extrusion;
 import com.klikli_dev.magicparticleslib.extrusion.ExtrusionMesh;

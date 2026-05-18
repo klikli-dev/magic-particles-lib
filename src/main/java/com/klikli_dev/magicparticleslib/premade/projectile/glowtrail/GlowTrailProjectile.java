@@ -5,7 +5,7 @@
 package com.klikli_dev.magicparticleslib.premade.projectile.glowtrail;
 
 import com.klikli_dev.magicparticleslib.premade.particle.glow.GlowParticleOptions;
-import com.klikli_dev.magicparticleslib.registry.EntityTypes;
+import com.klikli_dev.magicparticleslib.registry.EntityTypeRegistry;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -49,7 +49,7 @@ public class GlowTrailProjectile extends Entity {
     private boolean autoMaxTravelDistance = true;
 
     public GlowTrailProjectile(Level level, Vec3 from, Vec3 to) {
-        this(EntityTypes.GLOW_TRAIL_PROJECTILE.get(), level);
+        this(EntityTypeRegistry.GLOW_TRAIL_PROJECTILE.get(), level);
         this.path(from, to);
     }
 

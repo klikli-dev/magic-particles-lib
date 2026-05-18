@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: MIT
 
-package com.klikli_dev.magicparticleslib.premade.rift;
+package com.klikli_dev.magicparticleslib.premade.entity.rift;
 
 import net.minecraft.client.renderer.entity.state.EntityRenderState;
 

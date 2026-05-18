@@ -4,7 +4,7 @@
 
 package com.klikli_dev.magicparticleslib.premade.particle.glow;
 
-import com.klikli_dev.magicparticleslib.registry.ParticleTypes;
+import com.klikli_dev.magicparticleslib.registry.ParticleTypeRegistry;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -91,6 +91,6 @@ public record GlowParticleOptions(int color, boolean disableDepthTest, boolean s
 
     @Override
     public @NonNull ParticleType<GlowParticleOptions> getType() {
-        return ParticleTypes.GLOW.get();
+        return ParticleTypeRegistry.GLOW.get();
     }
 }

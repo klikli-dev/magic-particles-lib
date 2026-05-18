@@ -5,8 +5,8 @@
 package com.klikli_dev.magicparticleslib.registry;
 
 import com.klikli_dev.magicparticleslib.MagicParticlesLib;
-import com.klikli_dev.magicparticleslib.premade.branchingrift.BranchingRiftEntity;
-import com.klikli_dev.magicparticleslib.premade.rift.RiftEntity;
+import com.klikli_dev.magicparticleslib.premade.entity.branchingrift.BranchingRiftEntity;
+import com.klikli_dev.magicparticleslib.premade.entity.rift.RiftEntity;
 import com.klikli_dev.magicparticleslib.premade.projectile.glowtrail.GlowTrailProjectile;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
@@ -18,7 +18,7 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 
 import java.util.function.Supplier;
 
-public final class EntityTypes {
+public final class EntityTypeRegistry {
     public static final DeferredRegister<EntityType<?>> ENTITY_TYPES = DeferredRegister.create(Registries.ENTITY_TYPE, MagicParticlesLib.MODID);
 
     public static final Supplier<EntityType<GlowTrailProjectile>> GLOW_TRAIL_PROJECTILE = register(
@@ -49,7 +49,7 @@ public final class EntityTypes {
                     .updateInterval(1)
     );
 
-    private EntityTypes() {
+    private EntityTypeRegistry() {
     }
 
     private static <T extends Entity> Supplier<EntityType<T>> register(String name, EntityType.Builder<T> builder) {

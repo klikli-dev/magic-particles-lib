@@ -2,11 +2,11 @@
 //
 // SPDX-License-Identifier: MIT
 
-package com.klikli_dev.magicparticleslib.premade.rift;
+package com.klikli_dev.magicparticleslib.premade.entity.rift;
 
 import com.klikli_dev.magicparticleslib.extrusion.ExtrusionMesh;
-import com.klikli_dev.magicparticleslib.premade.rift.RiftEntity;
-import com.klikli_dev.magicparticleslib.registry.MPLRenderTypes;
+import com.klikli_dev.magicparticleslib.premade.entity.rift.RiftEntity;
+import com.klikli_dev.magicparticleslib.registry.RenderTypeRegistry;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.EntityRenderer;
@@ -58,7 +58,7 @@ public class RiftRenderer extends EntityRenderer<RiftEntity, RiftRenderState> {
                 submitNodeCollector.submitCustomGeometry(
                         poseStack,
                         // Halo passes use the softer additive pipeline; the last pass uses the brighter portal core.
-                        RiftVisualProfile.haloPass(passIndex) ? MPLRenderTypes.halo() : MPLRenderTypes.portal(),
+                        RiftVisualProfile.haloPass(passIndex) ? RenderTypeRegistry.riftHalo() : RenderTypeRegistry.riftPortal(),
                         // The mesh is already built in local space, so we only need to stream its vertices here.
                         (pose, consumer) -> mesh.emit(consumer, pose, state.lightCoords, OverlayTexture.NO_OVERLAY)
                 );

@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: MIT
 
-package com.klikli_dev.magicparticleslib.premade.branchingrift;
+package com.klikli_dev.magicparticleslib.premade.entity.branchingrift;
 
 import com.mojang.serialization.Codec;
 import net.minecraft.network.syncher.EntityDataAccessor;

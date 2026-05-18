@@ -2,11 +2,11 @@
 //
 // SPDX-License-Identifier: MIT
 
-package com.klikli_dev.magicparticleslib.premade.branchingrift;
+package com.klikli_dev.magicparticleslib.premade.entity.branchingrift;
 
 import com.klikli_dev.magicparticleslib.extrusion.ExtrusionMesh;
-import com.klikli_dev.magicparticleslib.premade.rift.RiftVisualProfile;
-import com.klikli_dev.magicparticleslib.registry.MPLRenderTypes;
+import com.klikli_dev.magicparticleslib.premade.entity.rift.RiftVisualProfile;
+import com.klikli_dev.magicparticleslib.registry.RenderTypeRegistry;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.EntityRenderer;
@@ -65,7 +65,7 @@ public class BranchingRiftRenderer extends EntityRenderer<BranchingRiftEntity, B
                     submitNodeCollector.submitCustomGeometry(
                             poseStack,
                             // Halo passes soften the silhouette before the portal core pass sharpens the center.
-                            RiftVisualProfile.haloPass(passIndex) ? MPLRenderTypes.halo() : MPLRenderTypes.portal(),
+                            RiftVisualProfile.haloPass(passIndex) ? RenderTypeRegistry.riftHalo() : RenderTypeRegistry.riftPortal(),
                             // Each segment shares the same render pipeline; only the generated mesh differs.
                             (pose, consumer) -> mesh.emit(consumer, pose, state.lightCoords, OverlayTexture.NO_OVERLAY)
                     );

@@ -1,0 +1,146 @@
+// SPDX-FileCopyrightText: 2026 klikli-dev
+//
+// SPDX-License-Identifier: MIT
+
+package com.klikli_dev.magicparticleslib.registry;
+
+import com.klikli_dev.magicparticleslib.MagicParticlesLib;
+import com.mojang.blaze3d.pipeline.BlendFunction;
+import com.mojang.blaze3d.pipeline.ColorTargetState;
+import com.mojang.blaze3d.pipeline.DepthStencilState;
+import com.mojang.blaze3d.pipeline.RenderPipeline;
+import com.mojang.blaze3d.platform.CompareOp;
+import com.mojang.blaze3d.platform.DestFactor;
+import com.mojang.blaze3d.platform.SourceFactor;
+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+import com.mojang.blaze3d.vertex.VertexFormat;
+import net.minecraft.client.particle.ParticleRenderType;
+import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.client.renderer.rendertype.RenderSetup;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.resources.Identifier;
+import net.minecraft.util.Util;
+import net.neoforged.neoforge.client.event.RegisterRenderPipelinesEvent;
+
+import java.util.function.Function;
+
+public final class RenderTypeRegistry {
+    public static final ParticleRenderType ELECTRIC_ARC_GROUP = new ParticleRenderType(MagicParticlesLib.MODID + ":electric_arc");
+    private static final Identifier RIFT_SHADER_ID = Identifier.fromNamespaceAndPath(MagicParticlesLib.MODID, "core/rift");
+    private static final Identifier ELECTRIC_ARC_SHADER_ID = Identifier.fromNamespaceAndPath(MagicParticlesLib.MODID, "core/electric_arc");
+    private static final Identifier PORTAL_TEXTURE = Identifier.fromNamespaceAndPath("minecraft", "textures/entity/end_portal/end_portal.png");
+    private static final Identifier ELECTRIC_ARC_TEXTURE = Identifier.fromNamespaceAndPath(MagicParticlesLib.MODID, "textures/effect/electric_arc.png");
+    private static final BlendFunction ALPHA_WEIGHTED_ADDITIVE = new BlendFunction(SourceFactor.SRC_ALPHA, DestFactor.ONE);
+
+    private static final RenderPipeline RIFT_HALO_PIPELINE = RenderPipeline.builder(RenderPipelines.MATRICES_FOG_SNIPPET, RenderPipelines.GLOBALS_SNIPPET)
+            .withLocation(Identifier.fromNamespaceAndPath(MagicParticlesLib.MODID, "pipeline/rift_halo"))
+            .withVertexShader(RIFT_SHADER_ID)
+            .withFragmentShader(RIFT_SHADER_ID)
+            .withSampler("Sampler0")
+            .withVertexFormat(DefaultVertexFormat.ENTITY, VertexFormat.Mode.TRIANGLES)
+            .withCull(false)
+            .withColorTargetState(new ColorTargetState(BlendFunction.ADDITIVE))
+            .withDepthStencilState(new DepthStencilState(CompareOp.LESS_THAN_OR_EQUAL, false))
+            .build();
+
+    private static final RenderPipeline RIFT_PORTAL_PIPELINE = RenderPipeline.builder(RenderPipelines.MATRICES_FOG_SNIPPET, RenderPipelines.GLOBALS_SNIPPET)
+            .withLocation(Identifier.fromNamespaceAndPath(MagicParticlesLib.MODID, "pipeline/rift"))
+            .withVertexShader(RIFT_SHADER_ID)
+            .withFragmentShader(RIFT_SHADER_ID)
+            .withSampler("Sampler0")
+            .withVertexFormat(DefaultVertexFormat.ENTITY, VertexFormat.Mode.TRIANGLES)
+            .withCull(false)
+            .withColorTargetState(new ColorTargetState(BlendFunction.TRANSLUCENT))
+            .withDepthStencilState(new DepthStencilState(CompareOp.LESS_THAN_OR_EQUAL, true))
+            .build();
+
+    private static final RenderPipeline ELECTRIC_ARC_HALO_PIPELINE = RenderPipeline.builder(RenderPipelines.MATRICES_FOG_SNIPPET, RenderPipelines.GLOBALS_SNIPPET)
+            .withLocation(Identifier.fromNamespaceAndPath(MagicParticlesLib.MODID, "pipeline/electric_arc_halo"))
+            .withVertexShader(ELECTRIC_ARC_SHADER_ID)
+            .withFragmentShader(ELECTRIC_ARC_SHADER_ID)
+            .withSampler("Sampler0")
+            .withSampler("Sampler2")
+            .withVertexFormat(DefaultVertexFormat.ENTITY, VertexFormat.Mode.TRIANGLES)
+            .withCull(false)
+            .withColorTargetState(new ColorTargetState(ALPHA_WEIGHTED_ADDITIVE))
+            .withDepthStencilState(new DepthStencilState(CompareOp.LESS_THAN_OR_EQUAL, false))
+            .build();
+
+    private static final RenderPipeline ELECTRIC_ARC_CORE_PIPELINE = RenderPipeline.builder(RenderPipelines.MATRICES_FOG_SNIPPET, RenderPipelines.GLOBALS_SNIPPET)
+            .withLocation(Identifier.fromNamespaceAndPath(MagicParticlesLib.MODID, "pipeline/electric_arc_core"))
+            .withVertexShader(ELECTRIC_ARC_SHADER_ID)
+            .withFragmentShader(ELECTRIC_ARC_SHADER_ID)
+            .withSampler("Sampler0")
+            .withSampler("Sampler2")
+            .withVertexFormat(DefaultVertexFormat.ENTITY, VertexFormat.Mode.TRIANGLES)
+            .withCull(false)
+            .withColorTargetState(new ColorTargetState(ALPHA_WEIGHTED_ADDITIVE))
+            .withDepthStencilState(new DepthStencilState(CompareOp.LESS_THAN_OR_EQUAL, false))
+            .build();
+
+    private static final Function<Identifier, RenderType> RIFT_HALO = Util.memoize(RenderTypeRegistry::createRiftHalo);
+    private static final Function<Identifier, RenderType> RIFT_PORTAL = Util.memoize(RenderTypeRegistry::createRiftPortal);
+    private static final Function<Identifier, RenderType> ELECTRIC_ARC_HALO = Util.memoize(RenderTypeRegistry::createElectricArcHalo);
+    private static final Function<Identifier, RenderType> ELECTRIC_ARC_CORE = Util.memoize(RenderTypeRegistry::createElectricArcCore);
+
+    private RenderTypeRegistry() {
+    }
+
+    public static void register(RegisterRenderPipelinesEvent event) {
+        event.registerPipeline(RIFT_HALO_PIPELINE);
+        event.registerPipeline(RIFT_PORTAL_PIPELINE);
+        event.registerPipeline(ELECTRIC_ARC_HALO_PIPELINE);
+        event.registerPipeline(ELECTRIC_ARC_CORE_PIPELINE);
+    }
+
+    public static RenderType riftHalo() {
+        return RIFT_HALO.apply(PORTAL_TEXTURE);
+    }
+
+    public static RenderType riftPortal() {
+        return RIFT_PORTAL.apply(PORTAL_TEXTURE);
+    }
+
+    public static RenderType electricArcHalo() {
+        return ELECTRIC_ARC_HALO.apply(ELECTRIC_ARC_TEXTURE);
+    }
+
+    public static RenderType electricArcCore() {
+        return ELECTRIC_ARC_CORE.apply(ELECTRIC_ARC_TEXTURE);
+    }
+
+    private static RenderType createRiftHalo(Identifier texture) {
+        RenderSetup state = RenderSetup.builder(RIFT_HALO_PIPELINE)
+                .bufferSize(RenderType.TRANSIENT_BUFFER_SIZE)
+                .withTexture("Sampler0", texture)
+                .createRenderSetup();
+        return RenderType.create(MagicParticlesLib.MODID + "_rift_halo", state);
+    }
+
+    private static RenderType createRiftPortal(Identifier texture) {
+        RenderSetup state = RenderSetup.builder(RIFT_PORTAL_PIPELINE)
+                .bufferSize(RenderType.TRANSIENT_BUFFER_SIZE)
+                .withTexture("Sampler0", texture)
+                .sortOnUpload()
+                .createRenderSetup();
+        return RenderType.create(MagicParticlesLib.MODID + "_rift", state);
+    }
+
+    private static RenderType createElectricArcHalo(Identifier texture) {
+        RenderSetup state = RenderSetup.builder(ELECTRIC_ARC_HALO_PIPELINE)
+                .bufferSize(RenderType.TRANSIENT_BUFFER_SIZE)
+                .withTexture("Sampler0", texture)
+                .useLightmap()
+                .createRenderSetup();
+        return RenderType.create(MagicParticlesLib.MODID + "_electric_arc_halo", state);
+    }
+
+    private static RenderType createElectricArcCore(Identifier texture) {
+        RenderSetup state = RenderSetup.builder(ELECTRIC_ARC_CORE_PIPELINE)
+                .bufferSize(RenderType.TRANSIENT_BUFFER_SIZE)
+                .withTexture("Sampler0", texture)
+                .useLightmap()
+                .createRenderSetup();
+        return RenderType.create(MagicParticlesLib.MODID + "_electric_arc_core", state);
+    }
+}

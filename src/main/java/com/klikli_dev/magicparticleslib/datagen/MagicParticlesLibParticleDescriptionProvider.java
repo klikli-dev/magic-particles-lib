@@ -5,7 +5,7 @@
 package com.klikli_dev.magicparticleslib.datagen;
 
 import com.klikli_dev.magicparticleslib.MagicParticlesLib;
-import com.klikli_dev.magicparticleslib.registry.ParticleTypes;
+import com.klikli_dev.magicparticleslib.registry.ParticleTypeRegistry;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.Identifier;
 import net.neoforged.neoforge.client.data.ParticleDescriptionProvider;
@@ -17,6 +17,6 @@ public class MagicParticlesLibParticleDescriptionProvider extends ParticleDescri
 
     @Override
     protected void addDescriptions() {
-        this.spriteSet(ParticleTypes.GLOW.get(), Identifier.fromNamespaceAndPath(MagicParticlesLib.MODID, "particle_glow"));
+        this.spriteSet(ParticleTypeRegistry.GLOW.get(), Identifier.fromNamespaceAndPath(MagicParticlesLib.MODID, "particle_glow"));
     }
 }

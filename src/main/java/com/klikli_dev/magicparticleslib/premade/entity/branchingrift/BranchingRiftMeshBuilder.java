@@ -2,15 +2,15 @@
 //
 // SPDX-License-Identifier: MIT
 
-package com.klikli_dev.magicparticleslib.premade.branchingrift;
+package com.klikli_dev.magicparticleslib.premade.entity.branchingrift;
 
 import com.klikli_dev.magicparticleslib.extrusion.Extrusion;
 import com.klikli_dev.magicparticleslib.extrusion.ExtrusionMesh;
 import com.klikli_dev.magicparticleslib.extrusion.ExtrusionOptions;
 import com.klikli_dev.magicparticleslib.extrusion.JoinStyle;
 import com.klikli_dev.magicparticleslib.extrusion.NormalStyle;
-import com.klikli_dev.magicparticleslib.premade.rift.RiftShape;
-import com.klikli_dev.magicparticleslib.premade.rift.RiftVisualProfile;
+import com.klikli_dev.magicparticleslib.premade.entity.rift.RiftShape;
+import com.klikli_dev.magicparticleslib.premade.entity.rift.RiftVisualProfile;
 import net.minecraft.world.phys.Vec3;
 
 import java.util.ArrayList;

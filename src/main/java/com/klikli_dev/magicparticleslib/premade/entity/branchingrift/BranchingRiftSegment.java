@@ -2,9 +2,9 @@
 //
 // SPDX-License-Identifier: MIT
 
-package com.klikli_dev.magicparticleslib.premade.branchingrift;
+package com.klikli_dev.magicparticleslib.premade.entity.branchingrift;
 
-import com.klikli_dev.magicparticleslib.premade.rift.RiftShape;
+import com.klikli_dev.magicparticleslib.premade.entity.rift.RiftShape;
 
 // parentSegmentIndex/parentAnchorIndex describe where this segment attaches into the already-generated tree.
 // growthScale is the structural width multiplier applied on top of the segment's local radii.

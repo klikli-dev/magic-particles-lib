@@ -71,3 +71,10 @@ Example helper command for easier local testing:
 ```mcfunction
 /mpl spawn electric_arc 100 4
 ```
+
+Helper command parameters:
+
+- `durationTicks`: how long the held-item simulation runs in ticks
+- `tickSpacing`: how many ticks to wait between individual arc spawns
+
+So `/mpl spawn electric_arc 100 4` simulates holding the test item for about 100 ticks, spawning one arc every 4 ticks.

@@ -26,10 +26,12 @@ import java.util.function.Function;
 
 public final class RenderTypeRegistry {
     public static final ParticleRenderType ELECTRIC_ARC_GROUP = new ParticleRenderType(MagicParticlesLib.MODID + ":electric_arc");
+    public static final ParticleRenderType LIGHTNING_GROUP = new ParticleRenderType(MagicParticlesLib.MODID + ":lightning");
     private static final Identifier RIFT_SHADER_ID = Identifier.fromNamespaceAndPath(MagicParticlesLib.MODID, "core/rift");
     private static final Identifier ELECTRIC_ARC_SHADER_ID = Identifier.fromNamespaceAndPath(MagicParticlesLib.MODID, "core/electric_arc");
     private static final Identifier PORTAL_TEXTURE = Identifier.fromNamespaceAndPath("minecraft", "textures/entity/end_portal/end_portal.png");
     private static final Identifier ELECTRIC_ARC_TEXTURE = Identifier.fromNamespaceAndPath(MagicParticlesLib.MODID, "textures/effect/electric_arc.png");
+    private static final Identifier LIGHTNING_TEXTURE = Identifier.fromNamespaceAndPath(MagicParticlesLib.MODID, "textures/effect/lightning_core.png");
     private static final BlendFunction ALPHA_WEIGHTED_ADDITIVE = new BlendFunction(SourceFactor.SRC_ALPHA, DestFactor.ONE);
 
     private static final RenderPipeline RIFT_HALO_PIPELINE = RenderPipeline.builder(RenderPipelines.MATRICES_FOG_SNIPPET, RenderPipelines.GLOBALS_SNIPPET)
@@ -78,10 +80,36 @@ public final class RenderTypeRegistry {
             .withDepthStencilState(new DepthStencilState(CompareOp.LESS_THAN_OR_EQUAL, false))
             .build();
 
+    private static final RenderPipeline LIGHTNING_HALO_PIPELINE = RenderPipeline.builder(RenderPipelines.MATRICES_FOG_SNIPPET, RenderPipelines.GLOBALS_SNIPPET)
+            .withLocation(Identifier.fromNamespaceAndPath(MagicParticlesLib.MODID, "pipeline/lightning_halo"))
+            .withVertexShader(ELECTRIC_ARC_SHADER_ID)
+            .withFragmentShader(ELECTRIC_ARC_SHADER_ID)
+            .withSampler("Sampler0")
+            .withSampler("Sampler2")
+            .withVertexFormat(DefaultVertexFormat.ENTITY, VertexFormat.Mode.TRIANGLES)
+            .withCull(false)
+            .withColorTargetState(new ColorTargetState(ALPHA_WEIGHTED_ADDITIVE))
+            .withDepthStencilState(new DepthStencilState(CompareOp.LESS_THAN_OR_EQUAL, false))
+            .build();
+
+    private static final RenderPipeline LIGHTNING_CORE_PIPELINE = RenderPipeline.builder(RenderPipelines.MATRICES_FOG_SNIPPET, RenderPipelines.GLOBALS_SNIPPET)
+            .withLocation(Identifier.fromNamespaceAndPath(MagicParticlesLib.MODID, "pipeline/lightning_core"))
+            .withVertexShader(ELECTRIC_ARC_SHADER_ID)
+            .withFragmentShader(ELECTRIC_ARC_SHADER_ID)
+            .withSampler("Sampler0")
+            .withSampler("Sampler2")
+            .withVertexFormat(DefaultVertexFormat.ENTITY, VertexFormat.Mode.TRIANGLES)
+            .withCull(false)
+            .withColorTargetState(new ColorTargetState(ALPHA_WEIGHTED_ADDITIVE))
+            .withDepthStencilState(new DepthStencilState(CompareOp.LESS_THAN_OR_EQUAL, false))
+            .build();
+
     private static final Function<Identifier, RenderType> RIFT_HALO = Util.memoize(RenderTypeRegistry::createRiftHalo);
     private static final Function<Identifier, RenderType> RIFT_PORTAL = Util.memoize(RenderTypeRegistry::createRiftPortal);
     private static final Function<Identifier, RenderType> ELECTRIC_ARC_HALO = Util.memoize(RenderTypeRegistry::createElectricArcHalo);
     private static final Function<Identifier, RenderType> ELECTRIC_ARC_CORE = Util.memoize(RenderTypeRegistry::createElectricArcCore);
+    private static final Function<Identifier, RenderType> LIGHTNING_HALO = Util.memoize(RenderTypeRegistry::createLightningHalo);
+    private static final Function<Identifier, RenderType> LIGHTNING_CORE = Util.memoize(RenderTypeRegistry::createLightningCore);
 
     private RenderTypeRegistry() {
     }
@@ -91,6 +119,8 @@ public final class RenderTypeRegistry {
         event.registerPipeline(RIFT_PORTAL_PIPELINE);
         event.registerPipeline(ELECTRIC_ARC_HALO_PIPELINE);
         event.registerPipeline(ELECTRIC_ARC_CORE_PIPELINE);
+        event.registerPipeline(LIGHTNING_HALO_PIPELINE);
+        event.registerPipeline(LIGHTNING_CORE_PIPELINE);
     }
 
     public static RenderType riftHalo() {
@@ -107,6 +137,14 @@ public final class RenderTypeRegistry {
 
     public static RenderType electricArcCore() {
         return ELECTRIC_ARC_CORE.apply(ELECTRIC_ARC_TEXTURE);
+    }
+
+    public static RenderType lightningHalo() {
+        return LIGHTNING_HALO.apply(LIGHTNING_TEXTURE);
+    }
+
+    public static RenderType lightningCore() {
+        return LIGHTNING_CORE.apply(LIGHTNING_TEXTURE);
     }
 
     private static RenderType createRiftHalo(Identifier texture) {
@@ -142,5 +180,23 @@ public final class RenderTypeRegistry {
                 .useLightmap()
                 .createRenderSetup();
         return RenderType.create(MagicParticlesLib.MODID + "_electric_arc_core", state);
+    }
+
+    private static RenderType createLightningHalo(Identifier texture) {
+        RenderSetup state = RenderSetup.builder(LIGHTNING_HALO_PIPELINE)
+                .bufferSize(RenderType.TRANSIENT_BUFFER_SIZE)
+                .withTexture("Sampler0", texture)
+                .useLightmap()
+                .createRenderSetup();
+        return RenderType.create(MagicParticlesLib.MODID + "_lightning_halo", state);
+    }
+
+    private static RenderType createLightningCore(Identifier texture) {
+        RenderSetup state = RenderSetup.builder(LIGHTNING_CORE_PIPELINE)
+                .bufferSize(RenderType.TRANSIENT_BUFFER_SIZE)
+                .withTexture("Sampler0", texture)
+                .useLightmap()
+                .createRenderSetup();
+        return RenderType.create(MagicParticlesLib.MODID + "_lightning_core", state);
     }
 }

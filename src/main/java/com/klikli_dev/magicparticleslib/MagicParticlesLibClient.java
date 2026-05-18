@@ -7,10 +7,13 @@ package com.klikli_dev.magicparticleslib;
 import com.klikli_dev.magicparticleslib.premade.entity.branchingrift.BranchingRiftRenderer;
 import com.klikli_dev.magicparticleslib.example.command.SpawnElectricArcClientCommand;
 import com.klikli_dev.magicparticleslib.example.command.SpawnGlowTrailProjectileClientCommand;
+import com.klikli_dev.magicparticleslib.example.command.SpawnLightningClientCommand;
 import com.klikli_dev.magicparticleslib.premade.particle.electricarc.ElectricArcParticleGroup;
 import com.klikli_dev.magicparticleslib.premade.particle.electricarc.ElectricArcParticleProvider;
 import com.klikli_dev.magicparticleslib.premade.entity.rift.RiftRenderer;
 import com.klikli_dev.magicparticleslib.premade.projectile.glowtrail.GlowTrailProjectileRenderer;
+import com.klikli_dev.magicparticleslib.premade.particle.lightning.LightningParticleGroup;
+import com.klikli_dev.magicparticleslib.premade.particle.lightning.LightningParticleProvider;
 import com.klikli_dev.magicparticleslib.registry.EntityTypeRegistry;
 import com.klikli_dev.magicparticleslib.registry.RenderTypeRegistry;
 import com.klikli_dev.magicparticleslib.premade.particle.glow.GlowParticleProvider;
@@ -37,6 +40,7 @@ public class MagicParticlesLibClient {
         modEventBus.addListener(MagicParticlesLibClient::registerParticleGroups);
         NeoForge.EVENT_BUS.addListener(MagicParticlesLibClient::registerClientCommands);
         NeoForge.EVENT_BUS.addListener(SpawnElectricArcClientCommand::onClientTick);
+        NeoForge.EVENT_BUS.addListener(SpawnLightningClientCommand::onClientTick);
         container.registerExtensionPoint(IConfigScreenFactory.class, ConfigurationScreen::new);
     }
 
@@ -46,6 +50,7 @@ public class MagicParticlesLibClient {
 
     private static void registerClientCommands(RegisterClientCommandsEvent event) {
         SpawnElectricArcClientCommand.register(event.getDispatcher());
+        SpawnLightningClientCommand.register(event.getDispatcher());
         SpawnGlowTrailProjectileClientCommand.register(event.getDispatcher());
     }
 
@@ -58,9 +63,11 @@ public class MagicParticlesLibClient {
     private static void registerParticleProviders(RegisterParticleProvidersEvent event) {
         event.registerSpriteSet(ParticleTypeRegistry.GLOW.get(), GlowParticleProvider::new);
         event.registerSpecial(ParticleTypeRegistry.ELECTRIC_ARC.get(), new ElectricArcParticleProvider());
+        event.registerSpecial(ParticleTypeRegistry.LIGHTNING.get(), new LightningParticleProvider());
     }
 
     private static void registerParticleGroups(RegisterParticleGroupsEvent event) {
         event.register(RenderTypeRegistry.ELECTRIC_ARC_GROUP, ElectricArcParticleGroup::new);
+        event.register(RenderTypeRegistry.LIGHTNING_GROUP, LightningParticleGroup::new);
     }
 }

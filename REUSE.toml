@@ -20,6 +20,12 @@ SPDX-FileCopyrightText = "2026 klikli-dev"
 SPDX-License-Identifier = "CC-BY-4.0"
 
 [[annotations]]
+path = "src/main/resources/assets/magicparticleslib/shaders/**"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 klikli-dev"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
 path = "src/main/resources/**"
 precedence = "aggregate"
 SPDX-FileCopyrightText = "2026 klikli-dev"

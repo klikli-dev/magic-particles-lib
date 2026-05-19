@@ -1,7 +1,3 @@
-// SPDX-FileCopyrightText: 2026 klikli-dev
-//
-// SPDX-License-Identifier: MIT
-
 #version 330
 
 #moj_import <fog.glsl>

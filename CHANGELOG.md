@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [release/v26.1.2-1.5.0] - 2026-05-27
+### :sparkles: New Features
+- [`7cc3a22`](https://github.com/klikli-dev/magic-particles-lib/commit/7cc3a2215aa337a581857e04ea4a013d50905b30) - update docs and logo *(commit by [@klikli-dev](https://github.com/klikli-dev))*
+
+
 ## [release/v26.1.2-1.4.0] - 2026-05-19
 ### :wrench: Chores
 - [`ca61552`](https://github.com/klikli-dev/magic-particles-lib/commit/ca615520afd23de078c256b3a47a086c22456a4c) - move licensing info from shader files into REUSE.toml *(commit by [@klikli-dev](https://github.com/klikli-dev))*
@@ -36,3 +41,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [release/v26.1.2-1.2.0]: https://github.com/klikli-dev/magic-particles-lib/compare/release/v26.1.2-1.1.0...release/v26.1.2-1.2.0
 [release/v26.1.2-1.3.0]: https://github.com/klikli-dev/magic-particles-lib/compare/release/v26.1.2-1.2.0...release/v26.1.2-1.3.0
 [release/v26.1.2-1.4.0]: https://github.com/klikli-dev/magic-particles-lib/compare/release/v26.1.2-1.3.0...release/v26.1.2-1.4.0
+[release/v26.1.2-1.5.0]: https://github.com/klikli-dev/magic-particles-lib/compare/release/v26.1.2-1.4.0...release/v26.1.2-1.5.0

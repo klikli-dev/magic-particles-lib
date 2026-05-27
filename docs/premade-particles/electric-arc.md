@@ -2,7 +2,7 @@
 
 The electric arc particle is a particle that renders a jagged "electric" arc between two points.
 
-![electric arc preview](./electric-ark.gif)
+![electric arc preview](electric-arc.gif)
 
 ## Registry id
 

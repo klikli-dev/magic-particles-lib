@@ -52,7 +52,7 @@ public final class RenderTypeRegistry {
             .withFragmentShader(RIFT_SHADER_ID)
             .withBindGroupLayout(BindGroupLayouts.SAMPLER0)
             .withVertexBinding(0, DefaultVertexFormat.ENTITY)
-            .withPrimitiveTopology(PrimitiveTopology.TRIANGLES)
+            .withPrimitiveTopology(PrimitiveTopology.QUADS)
             .withCull(false)
             .withColorTargetState(new ColorTargetState(BlendFunction.TRANSLUCENT))
             .withDepthStencilState(new DepthStencilState(CompareOp.LESS_THAN_OR_EQUAL, true))

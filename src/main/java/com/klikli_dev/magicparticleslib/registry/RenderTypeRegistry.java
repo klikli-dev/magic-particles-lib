@@ -43,7 +43,7 @@ public final class RenderTypeRegistry {
             .withPrimitiveTopology(PrimitiveTopology.TRIANGLES)
             .withCull(false)
             .withColorTargetState(new ColorTargetState(BlendFunction.ADDITIVE))
-            .withDepthStencilState(new DepthStencilState(CompareOp.LESS_THAN_OR_EQUAL, false))
+            .withDepthStencilState(new DepthStencilState(CompareOp.GREATER_THAN_OR_EQUAL, false))
             .build();
 
     private static final RenderPipeline RIFT_PORTAL_PIPELINE = RenderPipeline.builder(RenderPipelines.MATRICES_FOG_SNIPPET)
@@ -55,7 +55,7 @@ public final class RenderTypeRegistry {
             .withPrimitiveTopology(PrimitiveTopology.TRIANGLES)
             .withCull(false)
             .withColorTargetState(new ColorTargetState(BlendFunction.TRANSLUCENT))
-            .withDepthStencilState(new DepthStencilState(CompareOp.LESS_THAN_OR_EQUAL, true))
+            .withDepthStencilState(new DepthStencilState(CompareOp.GREATER_THAN_OR_EQUAL, true))
             .build();
 
     private static final RenderPipeline ELECTRIC_ARC_HALO_PIPELINE = RenderPipeline.builder(RenderPipelines.MATRICES_FOG_SNIPPET)
@@ -67,7 +67,7 @@ public final class RenderTypeRegistry {
             .withPrimitiveTopology(PrimitiveTopology.TRIANGLES)
             .withCull(false)
             .withColorTargetState(new ColorTargetState(ALPHA_WEIGHTED_ADDITIVE))
-            .withDepthStencilState(new DepthStencilState(CompareOp.LESS_THAN_OR_EQUAL, false))
+            .withDepthStencilState(new DepthStencilState(CompareOp.GREATER_THAN_OR_EQUAL, false))
             .build();
 
     private static final RenderPipeline ELECTRIC_ARC_CORE_PIPELINE = RenderPipeline.builder(RenderPipelines.MATRICES_FOG_SNIPPET)
@@ -79,7 +79,7 @@ public final class RenderTypeRegistry {
             .withPrimitiveTopology(PrimitiveTopology.TRIANGLES)
             .withCull(false)
             .withColorTargetState(new ColorTargetState(ALPHA_WEIGHTED_ADDITIVE))
-            .withDepthStencilState(new DepthStencilState(CompareOp.LESS_THAN_OR_EQUAL, false))
+            .withDepthStencilState(new DepthStencilState(CompareOp.GREATER_THAN_OR_EQUAL, false))
             .build();
 
     private static final RenderPipeline LIGHTNING_HALO_PIPELINE = RenderPipeline.builder(RenderPipelines.MATRICES_FOG_SNIPPET)
@@ -91,7 +91,7 @@ public final class RenderTypeRegistry {
             .withPrimitiveTopology(PrimitiveTopology.TRIANGLES)
             .withCull(false)
             .withColorTargetState(new ColorTargetState(ALPHA_WEIGHTED_ADDITIVE))
-            .withDepthStencilState(new DepthStencilState(CompareOp.LESS_THAN_OR_EQUAL, false))
+            .withDepthStencilState(new DepthStencilState(CompareOp.GREATER_THAN_OR_EQUAL, false))
             .build();
 
     private static final RenderPipeline LIGHTNING_CORE_PIPELINE = RenderPipeline.builder(RenderPipelines.MATRICES_FOG_SNIPPET)
@@ -103,7 +103,7 @@ public final class RenderTypeRegistry {
             .withPrimitiveTopology(PrimitiveTopology.TRIANGLES)
             .withCull(false)
             .withColorTargetState(new ColorTargetState(ALPHA_WEIGHTED_ADDITIVE))
-            .withDepthStencilState(new DepthStencilState(CompareOp.LESS_THAN_OR_EQUAL, false))
+            .withDepthStencilState(new DepthStencilState(CompareOp.GREATER_THAN_OR_EQUAL, false))
             .build();
 
     private static final Function<Identifier, RenderType> RIFT_HALO = Util.memoize(RenderTypeRegistry::createRiftHalo);

@@ -67,7 +67,7 @@ public class GlowParticle extends SingleQuadParticle {
                 .withBindGroupLayout(BindGroupLayouts.SAMPLER0_SAMPLER2)
                 .withVertexBinding(0, DefaultVertexFormat.PARTICLE)
                 .withPrimitiveTopology(PrimitiveTopology.QUADS)
-                .withDepthStencilState(new DepthStencilState(CompareOp.LESS_THAN_OR_EQUAL, false))
+                .withDepthStencilState(new DepthStencilState(CompareOp.GREATER_THAN_OR_EQUAL, false))
                 .withColorTargetState(new ColorTargetState(BlendFunction.TRANSLUCENT))
                 .build();
 

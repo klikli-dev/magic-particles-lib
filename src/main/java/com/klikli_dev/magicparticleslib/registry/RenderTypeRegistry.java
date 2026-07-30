@@ -52,7 +52,7 @@ public final class RenderTypeRegistry {
             .withFragmentShader(RIFT_SHADER_ID)
             .withBindGroupLayout(BindGroupLayouts.SAMPLER0)
             .withVertexBinding(0, DefaultVertexFormat.ENTITY)
-            .withPrimitiveTopology(PrimitiveTopology.QUADS)
+            .withPrimitiveTopology(PrimitiveTopology.TRIANGLES)
             .withCull(false)
             .withColorTargetState(new ColorTargetState(BlendFunction.TRANSLUCENT))
             .withDepthStencilState(new DepthStencilState(CompareOp.LESS_THAN_OR_EQUAL, true))
@@ -159,7 +159,6 @@ public final class RenderTypeRegistry {
     private static RenderType createRiftPortal(Identifier texture) {
         RenderSetup state = RenderSetup.builder(RIFT_PORTAL_PIPELINE)
                 .withTexture("Sampler0", texture)
-                .sortOnUpload()
                 .createRenderSetup();
         return RenderType.create(MagicParticlesLib.MODID + "_rift", state);
     }

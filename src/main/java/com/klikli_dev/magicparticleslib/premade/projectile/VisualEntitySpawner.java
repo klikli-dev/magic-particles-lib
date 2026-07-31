@@ -11,12 +11,16 @@ import net.neoforged.fml.loading.FMLEnvironment;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 /**
  * Spawns visual-only entities on the local client.
  * <p>
  * This is intended for effects that should not exist on the server, such as temporary particle-driving entities.
  */
 public final class VisualEntitySpawner {
+    private static final AtomicInteger CLIENT_ENTITY_COUNTER = new AtomicInteger();
+
     private VisualEntitySpawner() {
     }
 
@@ -47,6 +51,9 @@ public final class VisualEntitySpawner {
                 return;
             }
 
+            // MC 26.2: ClientLevel.getNextEntityId() returns 0, which is the sentinel for "unassigned".
+            // Entity.getId() throws if id == 0, so we must assign a valid client-side ID before adding.
+            entity.setId(CLIENT_ENTITY_COUNTER.incrementAndGet());
             clientLevel.addEntity(entity);
         }
     }

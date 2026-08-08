@@ -1,11 +1,12 @@
 license = "${mod_license}"
+licenseUrl = "https://github.com/klikli-dev/magic-particles-lib#licensing"
 issueTrackerURL = "https://github.com/klikli-dev/magic-particles-lib/issues"
 
 [[mods]]
 modId = "${mod_id}"
 version = "${mod_version}"
 displayName = "${mod_name}"
-logoFile = "magic_particles_lib.png"
+iconFile  = "magic_particles_lib.png"
 displayURL = "https://github.com/klikli-dev/magic-particles-lib"
 credits = """See https://github.com/klikli-dev/magic-particles-lib#licensing"""
 authors = "${mod_authors}"

@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [release/v26.1.2-1.7.0] - 2026-08-16
+### :sparkles: New Features
+- [`c6e0ff9`](https://github.com/klikli-dev/magic-particles-lib/commit/c6e0ff98437a9711230f4f2e57554742142e8899) - add nitor particle *(PR [#10](https://github.com/klikli-dev/magic-particles-lib/pull/10) by [@klikli-dev](https://github.com/klikli-dev))*
+  - :arrow_lower_right: *addresses issue [#8](https://github.com/klikli-dev/magic-particles-lib/issues/8) opened by [@AlexInCube](https://github.com/AlexInCube)*
+
+
 ## [release/v26.1.2-1.5.0] - 2026-05-27
 ### :sparkles: New Features
 - [`7cc3a22`](https://github.com/klikli-dev/magic-particles-lib/commit/7cc3a2215aa337a581857e04ea4a013d50905b30) - update docs and logo *(commit by [@klikli-dev](https://github.com/klikli-dev))*
@@ -42,3 +48,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [release/v26.1.2-1.3.0]: https://github.com/klikli-dev/magic-particles-lib/compare/release/v26.1.2-1.2.0...release/v26.1.2-1.3.0
 [release/v26.1.2-1.4.0]: https://github.com/klikli-dev/magic-particles-lib/compare/release/v26.1.2-1.3.0...release/v26.1.2-1.4.0
 [release/v26.1.2-1.5.0]: https://github.com/klikli-dev/magic-particles-lib/compare/release/v26.1.2-1.4.0...release/v26.1.2-1.5.0
+[release/v26.1.2-1.7.0]: https://github.com/klikli-dev/magic-particles-lib/compare/release/v26.1.2-1.5.1...release/v26.1.2-1.7.0

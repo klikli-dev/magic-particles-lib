@@ -13,12 +13,13 @@ import com.mojang.blaze3d.pipeline.RenderPipeline;
 import com.mojang.blaze3d.platform.BlendFactor;
 import com.mojang.blaze3d.platform.CompareOp;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.particle.ParticleRenderType;
 import net.minecraft.client.renderer.BindGroupLayouts;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.rendertype.RenderSetup;
 import net.minecraft.client.renderer.rendertype.RenderType;
-import net.minecraft.client.renderer.texture.TextureAtlas;
+import net.minecraft.data.AtlasIds;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.Util;
 import net.neoforged.neoforge.client.event.RegisterRenderPipelinesEvent;
@@ -178,11 +179,15 @@ public final class RenderTypeRegistry {
     }
 
     public static RenderType nitorFlame() {
-        return NITOR_FLAME.apply(TextureAtlas.LOCATION_PARTICLES);
+        return NITOR_FLAME.apply(particleAtlasLocation());
     }
 
     public static RenderType nitorCore() {
-        return NITOR_CORE.apply(TextureAtlas.LOCATION_PARTICLES);
+        return NITOR_CORE.apply(particleAtlasLocation());
+    }
+
+    private static Identifier particleAtlasLocation() {
+        return Minecraft.getInstance().getAtlasManager().getAtlasOrThrow(AtlasIds.PARTICLES).location();
     }
 
     private static RenderType createRiftHalo(Identifier texture) {

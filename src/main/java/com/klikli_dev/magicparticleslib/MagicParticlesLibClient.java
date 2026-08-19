@@ -9,9 +9,12 @@ import com.klikli_dev.magicparticleslib.example.command.SpawnElectricArcClientCo
 import com.klikli_dev.magicparticleslib.example.command.SpawnGlowTrailProjectileClientCommand;
 import com.klikli_dev.magicparticleslib.example.command.SpawnLightningClientCommand;
 import com.klikli_dev.magicparticleslib.example.command.SpawnNitorClientCommand;
+import com.klikli_dev.magicparticleslib.example.command.SpawnAuraNodeClientCommand;
 import com.klikli_dev.magicparticleslib.premade.particle.electricarc.ElectricArcParticleGroup;
 import com.klikli_dev.magicparticleslib.premade.particle.electricarc.ElectricArcParticleProvider;
 import com.klikli_dev.magicparticleslib.premade.entity.rift.RiftRenderer;
+import com.klikli_dev.magicparticleslib.premade.particle.auranode.AuraNodeParticleGroup;
+import com.klikli_dev.magicparticleslib.premade.particle.auranode.AuraNodeParticleProvider;
 import com.klikli_dev.magicparticleslib.premade.projectile.glowtrail.GlowTrailProjectileRenderer;
 import com.klikli_dev.magicparticleslib.premade.particle.lightning.LightningParticleGroup;
 import com.klikli_dev.magicparticleslib.premade.particle.lightning.LightningParticleProvider;
@@ -56,6 +59,7 @@ public class MagicParticlesLibClient {
         SpawnLightningClientCommand.register(event.getDispatcher());
         SpawnGlowTrailProjectileClientCommand.register(event.getDispatcher());
         SpawnNitorClientCommand.register(event.getDispatcher());
+        SpawnAuraNodeClientCommand.register(event.getDispatcher());
     }
 
     private static void registerEntityRenderers(EntityRenderersEvent.RegisterRenderers event) {
@@ -69,11 +73,13 @@ public class MagicParticlesLibClient {
         event.registerSpecial(ParticleTypeRegistry.ELECTRIC_ARC.get(), new ElectricArcParticleProvider());
         event.registerSpecial(ParticleTypeRegistry.LIGHTNING.get(), new LightningParticleProvider());
         event.registerSpriteSet(ParticleTypeRegistry.NITOR.get(), NitorParticleProvider::new);
+        event.registerSpecial(ParticleTypeRegistry.AURA_NODE.get(), new AuraNodeParticleProvider());
     }
 
     private static void registerParticleGroups(RegisterParticleGroupsEvent event) {
         event.register(RenderTypeRegistry.ELECTRIC_ARC_GROUP, ElectricArcParticleGroup::new);
         event.register(RenderTypeRegistry.LIGHTNING_GROUP, LightningParticleGroup::new);
         event.register(RenderTypeRegistry.NITOR_GROUP, NitorParticleGroup::new);
+        event.register(RenderTypeRegistry.AURA_NODE_GROUP, AuraNodeParticleGroup::new);
     }
 }

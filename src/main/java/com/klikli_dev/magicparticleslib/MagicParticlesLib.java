@@ -5,6 +5,7 @@
 package com.klikli_dev.magicparticleslib;
 
 import com.klikli_dev.magicparticleslib.datagen.MagicParticlesLibParticleDescriptionProvider;
+import com.klikli_dev.magicparticleslib.premade.particle.auranode.AuraNodePresets;
 import com.klikli_dev.magicparticleslib.registry.EntityTypeRegistry;
 import com.klikli_dev.magicparticleslib.registry.ParticleTypeRegistry;
 import net.neoforged.bus.api.IEventBus;
@@ -20,6 +21,8 @@ public class MagicParticlesLib {
     public MagicParticlesLib(IEventBus modEventBus, ModContainer modContainer) {
         EntityTypeRegistry.ENTITY_TYPES.register(modEventBus);
         ParticleTypeRegistry.PARTICLE_TYPES.register(modEventBus);
+        AuraNodePresets.PRESETS.register(modEventBus);
+        modEventBus.addListener(AuraNodePresets::createRegistry);
         modEventBus.addListener(MagicParticlesLib::gatherData);
         modContainer.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
     }

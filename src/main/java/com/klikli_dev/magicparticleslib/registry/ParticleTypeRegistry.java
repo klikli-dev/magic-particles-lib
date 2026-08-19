@@ -5,6 +5,8 @@
 package com.klikli_dev.magicparticleslib.registry;
 
 import com.klikli_dev.magicparticleslib.MagicParticlesLib;
+import com.klikli_dev.magicparticleslib.premade.particle.auranode.AuraNodeParticleOptions;
+import com.klikli_dev.magicparticleslib.premade.particle.auranode.AuraNodeParticleType;
 import com.klikli_dev.magicparticleslib.premade.particle.electricarc.ElectricArcParticleOptions;
 import com.klikli_dev.magicparticleslib.premade.particle.electricarc.ElectricArcParticleType;
 import com.klikli_dev.magicparticleslib.premade.particle.glow.GlowParticleOptions;
@@ -26,4 +28,5 @@ public final class ParticleTypeRegistry {
     public static final Supplier<ParticleType<ElectricArcParticleOptions>> ELECTRIC_ARC = PARTICLE_TYPES.register("electric_arc", ElectricArcParticleType::new);
     public static final Supplier<ParticleType<LightningParticleOptions>> LIGHTNING = PARTICLE_TYPES.register("lightning", LightningParticleType::new);
     public static final Supplier<ParticleType<NitorParticleOptions>> NITOR = PARTICLE_TYPES.register("nitor", NitorParticleType::new);
+    public static final Supplier<ParticleType<AuraNodeParticleOptions>> AURA_NODE = PARTICLE_TYPES.register("aura_node", AuraNodeParticleType::new);
 }

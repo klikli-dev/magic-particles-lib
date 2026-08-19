@@ -30,6 +30,7 @@ public final class RenderTypeRegistry {
     public static final ParticleRenderType ELECTRIC_ARC_GROUP = new ParticleRenderType(MagicParticlesLib.MODID + ":electric_arc", "electric_arc");
     public static final ParticleRenderType LIGHTNING_GROUP = new ParticleRenderType(MagicParticlesLib.MODID + ":lightning", "lightning");
     public static final ParticleRenderType NITOR_GROUP = new ParticleRenderType(MagicParticlesLib.MODID + ":nitor", "nitor");
+    public static final ParticleRenderType AURA_NODE_GROUP = new ParticleRenderType(MagicParticlesLib.MODID + ":aura_node", "aura_node");
     private static final Identifier RIFT_SHADER_ID = Identifier.fromNamespaceAndPath(MagicParticlesLib.MODID, "core/rift");
     private static final Identifier ELECTRIC_ARC_SHADER_ID = Identifier.fromNamespaceAndPath(MagicParticlesLib.MODID, "core/electric_arc");
     private static final Identifier PORTAL_TEXTURE = Identifier.fromNamespaceAndPath("minecraft", "textures/entity/end_portal/end_portal.png");
@@ -131,6 +132,28 @@ public final class RenderTypeRegistry {
             .withDepthStencilState(new DepthStencilState(CompareOp.GREATER_THAN, false))
             .build();
 
+    private static final RenderPipeline AURA_NODE_PIPELINE = RenderPipeline.builder(RenderPipelines.MATRICES_FOG_SNIPPET)
+            .withLocation(Identifier.fromNamespaceAndPath(MagicParticlesLib.MODID, "pipeline/aura_node"))
+            .withVertexShader(Identifier.withDefaultNamespace("core/particle"))
+            .withFragmentShader(Identifier.withDefaultNamespace("core/particle"))
+            .withBindGroupLayout(BindGroupLayouts.SAMPLER0_SAMPLER2)
+            .withVertexBinding(0, DefaultVertexFormat.PARTICLE)
+            .withPrimitiveTopology(PrimitiveTopology.QUADS)
+            .withColorTargetState(new ColorTargetState(ALPHA_WEIGHTED_ADDITIVE))
+            .withDepthStencilState(new DepthStencilState(CompareOp.GREATER_THAN, false))
+            .build();
+
+    private static final RenderPipeline AURA_NODE_NORMAL_BLEND_PIPELINE = RenderPipeline.builder(RenderPipelines.MATRICES_FOG_SNIPPET)
+            .withLocation(Identifier.fromNamespaceAndPath(MagicParticlesLib.MODID, "pipeline/aura_node_normal_blend"))
+            .withVertexShader(Identifier.withDefaultNamespace("core/particle"))
+            .withFragmentShader(Identifier.withDefaultNamespace("core/particle"))
+            .withBindGroupLayout(BindGroupLayouts.SAMPLER0_SAMPLER2)
+            .withVertexBinding(0, DefaultVertexFormat.PARTICLE)
+            .withPrimitiveTopology(PrimitiveTopology.QUADS)
+            .withColorTargetState(new ColorTargetState(BlendFunction.TRANSLUCENT))
+            .withDepthStencilState(new DepthStencilState(CompareOp.GREATER_THAN, false))
+            .build();
+
     private static final Function<Identifier, RenderType> RIFT_HALO = Util.memoize(RenderTypeRegistry::createRiftHalo);
     private static final Function<Identifier, RenderType> RIFT_PORTAL = Util.memoize(RenderTypeRegistry::createRiftPortal);
     private static final Function<Identifier, RenderType> ELECTRIC_ARC_HALO = Util.memoize(RenderTypeRegistry::createElectricArcHalo);
@@ -139,6 +162,8 @@ public final class RenderTypeRegistry {
     private static final Function<Identifier, RenderType> LIGHTNING_CORE = Util.memoize(RenderTypeRegistry::createLightningCore);
     private static final Function<Identifier, RenderType> NITOR_FLAME = Util.memoize(RenderTypeRegistry::createNitorFlame);
     private static final Function<Identifier, RenderType> NITOR_CORE = Util.memoize(RenderTypeRegistry::createNitorCore);
+    private static final Function<Identifier, RenderType> AURA_NODE = Util.memoize(RenderTypeRegistry::createAuraNode);
+    private static final Function<Identifier, RenderType> AURA_NODE_NORMAL_BLEND = Util.memoize(RenderTypeRegistry::createAuraNodeNormalBlend);
 
     private RenderTypeRegistry() {
     }
@@ -152,6 +177,8 @@ public final class RenderTypeRegistry {
         event.registerPipeline(LIGHTNING_CORE_PIPELINE);
         event.registerPipeline(NITOR_FLAME_PIPELINE);
         event.registerPipeline(NITOR_CORE_PIPELINE);
+        event.registerPipeline(AURA_NODE_PIPELINE);
+        event.registerPipeline(AURA_NODE_NORMAL_BLEND_PIPELINE);
     }
 
     public static RenderType riftHalo() {
@@ -188,6 +215,14 @@ public final class RenderTypeRegistry {
 
     private static Identifier particleAtlasLocation() {
         return Minecraft.getInstance().getAtlasManager().getAtlasOrThrow(AtlasIds.PARTICLES).location();
+    }
+
+    public static RenderType auraNode() {
+        return AURA_NODE.apply(particleAtlasLocation());
+    }
+
+    public static RenderType auraNodeNormalBlend() {
+        return AURA_NODE_NORMAL_BLEND.apply(particleAtlasLocation());
     }
 
     private static RenderType createRiftHalo(Identifier texture) {
@@ -250,5 +285,21 @@ public final class RenderTypeRegistry {
                 .useLightmap()
                 .createRenderSetup();
         return RenderType.create(MagicParticlesLib.MODID + "_nitor_core", state);
+    }
+
+    private static RenderType createAuraNode(Identifier texture) {
+        RenderSetup state = RenderSetup.builder(AURA_NODE_PIPELINE)
+                .withTexture("Sampler0", texture)
+                .useLightmap()
+                .createRenderSetup();
+        return RenderType.create(MagicParticlesLib.MODID + "_aura_node", state);
+    }
+
+    private static RenderType createAuraNodeNormalBlend(Identifier texture) {
+        RenderSetup state = RenderSetup.builder(AURA_NODE_NORMAL_BLEND_PIPELINE)
+                .withTexture("Sampler0", texture)
+                .useLightmap()
+                .createRenderSetup();
+        return RenderType.create(MagicParticlesLib.MODID + "_aura_node_normal_blend", state);
     }
 }

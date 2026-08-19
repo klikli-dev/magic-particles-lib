@@ -8,3 +8,4 @@ Premade particles are reusable particle implementations shipped by MPL.
 - [Electric arc particle](./electric-arc.md)
 - [Lightning particle](./lightning.md)
 - [Nitor particle](./nitor.md)
+- [Aura node particle](./aura-node.md)

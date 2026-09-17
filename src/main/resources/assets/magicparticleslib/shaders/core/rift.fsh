@@ -1,17 +1,18 @@
 #version 330
+#extension GL_ARB_separate_shader_objects : require
 
-#moj_import <fog.glsl>
-#moj_import <dynamictransforms.glsl>
-#moj_import <globals.glsl>
+#include <minecraft:fog.glsl>
+#include <minecraft:dynamictransforms.glsl>
+#include <minecraft:globals.glsl>
 
 uniform sampler2D Sampler0;
 
-in float sphericalVertexDistance;
-in float cylindricalVertexDistance;
-in vec4 vertexColor;
-in vec3 modelViewPosition;
+layout(location = 0) in float sphericalVertexDistance;
+layout(location = 1) in float cylindricalVertexDistance;
+layout(location = 2) in vec4 vertexColor;
+layout(location = 3) in vec3 modelViewPosition;
 
-out vec4 fragColor;
+layout(location = 0) out vec4 fragColor;
 
 const float TAU = 6.28318530717958647692;
 const float PI = 3.14159265358979323846;

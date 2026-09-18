@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [release/v26.3-1.8.0] - 2026-09-18
+### :bug: Bug Fixes
+- [`e5f13a4`](https://github.com/klikli-dev/magic-particles-lib/commit/e5f13a4bb16aa3b2c97925cb371d2c765af09e2f) - move render pipeline imports from blaze3d to renderpearl for 26.3 *(commit by [@klikli-dev](https://github.com/klikli-dev))*
+- [`f1a81f4`](https://github.com/klikli-dev/magic-particles-lib/commit/f1a81f4efe1acb106708ab4917f71597543ac987) - migrate custom shaders to 26.3 renderpearl format *(commit by [@klikli-dev](https://github.com/klikli-dev))*
+
+### :wrench: Chores
+- [`8d99c1c`](https://github.com/klikli-dev/magic-particles-lib/commit/8d99c1c10f6a1f15cc8dbdcef43589e0b6d39fe4) - update dependencies to 26.3 *(commit by [@klikli-dev](https://github.com/klikli-dev))*
+
+
 ## [release/v26.2-1.8.0] - 2026-08-19
 ### :sparkles: New Features
 - [`1d4ec54`](https://github.com/klikli-dev/magic-particles-lib/commit/1d4ec547e3a432c630dc4349978943998315bc04) - add aura node *(PR [#12](https://github.com/klikli-dev/magic-particles-lib/pull/12) by [@klikli-dev](https://github.com/klikli-dev))*
@@ -80,3 +89,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [release/v26.2-1.6.0]: https://github.com/klikli-dev/magic-particles-lib/compare/release/v26.2-1.5.1...release/v26.2-1.6.0
 [release/v26.2-1.7.0]: https://github.com/klikli-dev/magic-particles-lib/compare/release/v26.2-1.6.0...release/v26.2-1.7.0
 [release/v26.2-1.8.0]: https://github.com/klikli-dev/magic-particles-lib/compare/release/v26.2-1.7.0...release/v26.2-1.8.0
+[release/v26.3-1.8.0]: https://github.com/klikli-dev/magic-particles-lib/compare/release/v26.3-0.0.0...release/v26.3-1.8.0

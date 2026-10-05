@@ -24,7 +24,7 @@ public class MagicParticlesLib {
         AuraNodePresets.PRESETS.register(modEventBus);
         modEventBus.addListener(AuraNodePresets::createRegistry);
         modEventBus.addListener(MagicParticlesLib::gatherData);
-        modContainer.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
+        modContainer.registerConfig(ModConfig.Type.LOCAL, Config.SPEC);
     }
 
     private static void gatherData(GatherDataEvent.Client event) {

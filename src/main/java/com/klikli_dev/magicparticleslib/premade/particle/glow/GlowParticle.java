@@ -18,6 +18,7 @@ import net.minecraft.client.particle.SingleQuadParticle;
 import net.minecraft.client.particle.SpriteSet;
 import net.minecraft.client.renderer.BindGroupLayouts;
 import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.client.renderer.oit.OitPipelineSet;
 import net.minecraft.data.AtlasIds;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.LightCoordsUtil;
@@ -72,8 +73,22 @@ public class GlowParticle extends SingleQuadParticle {
                 .withColorTargetState(new ColorTargetState(BlendFunction.TRANSLUCENT))
                 .build();
 
+        RenderPipeline.Snippet oitSnippet = RenderPipeline.builder()
+                .withVertexShader("core/particle")
+                .withFragmentShader("core/particle")
+                .withBindGroupLayout(BindGroupLayouts.SAMPLER0_SAMPLER2)
+                .withBindGroupLayout(BindGroupLayouts.DYNAMIC_TRANSFORMS)
+                .withBindGroupLayout(BindGroupLayouts.FOG)
+                .withVertexBinding(0, DefaultVertexFormat.PARTICLE)
+                .withPrimitiveTopology(PrimitiveTopology.QUADS)
+                .withDepthStencilState(new DepthStencilState(CompareOp.GREATER_THAN_OR_EQUAL, false))
+                .buildSnippet();
+
+        OitPipelineSet oitPipelineSet = OitPipelineSet.builder(
+                "particle_translucent_no_depth", RenderPipeline.builder(oitSnippet)).build();
+
         return new SingleQuadParticle.Layer(
-                true, Minecraft.getInstance().getAtlasManager().getAtlasOrThrow(AtlasIds.PARTICLES).location(), pipeline);
+                true, Minecraft.getInstance().getAtlasManager().getAtlasOrThrow(AtlasIds.PARTICLES).location(), pipeline, oitPipelineSet);
     }
 
     @Override

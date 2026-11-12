@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [release/v26.3-1.9.1] - 2026-11-12
+### :bug: Bug Fixes
+- [`455ebc5`](https://github.com/klikli-dev/magic-particles-lib/commit/455ebc50714dad82e2480d01c653e129a318c4d8) - specify OIT pipeline set for no-depth glow particle layer to prevent crash with Fabulous graphics *(commit by [@klikli-dev](https://github.com/klikli-dev))*
+
+### :wrench: Chores
+- [`74191e7`](https://github.com/klikli-dev/magic-particles-lib/commit/74191e774597a1e4f3c014619eb820438595fc07) - ignore datagen cache and mark generated files as auto-generated *(commit by [@klikli-dev](https://github.com/klikli-dev))*
+- [`0698312`](https://github.com/klikli-dev/magic-particles-lib/commit/06983122a197df353d7626dc513d36badd8ec87b) - **ci**: update GitHub Actions to latest versions *(commit by [@klikli-dev](https://github.com/klikli-dev))*
+
+
 ## [release/v26.3-1.9.0] - 2026-10-06
 ### :sparkles: New Features
 - [`86ad675`](https://github.com/klikli-dev/magic-particles-lib/commit/86ad6757ed7bcdcd224c7a3f66713a244c4d5883) - update to NeoForge 26.3.0.51-beta, JEI 31.9.0.58 and migrate config type to LOCAL *(commit by [@klikli-dev](https://github.com/klikli-dev))*
@@ -96,3 +105,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [release/v26.2-1.8.0]: https://github.com/klikli-dev/magic-particles-lib/compare/release/v26.2-1.7.0...release/v26.2-1.8.0
 [release/v26.3-1.8.0]: https://github.com/klikli-dev/magic-particles-lib/compare/release/v26.3-0.0.0...release/v26.3-1.8.0
 [release/v26.3-1.9.0]: https://github.com/klikli-dev/magic-particles-lib/compare/release/v26.3-1.8.0...release/v26.3-1.9.0
+[release/v26.3-1.9.1]: https://github.com/klikli-dev/magic-particles-lib/compare/release/v26.3-1.9.0...release/v26.3-1.9.1

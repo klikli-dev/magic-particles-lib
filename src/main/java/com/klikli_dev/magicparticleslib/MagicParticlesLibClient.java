@@ -10,6 +10,7 @@ import com.klikli_dev.magicparticleslib.example.command.SpawnGlowTrailProjectile
 import com.klikli_dev.magicparticleslib.example.command.SpawnLightningClientCommand;
 import com.klikli_dev.magicparticleslib.example.command.SpawnNitorClientCommand;
 import com.klikli_dev.magicparticleslib.example.command.SpawnAuraNodeClientCommand;
+import com.klikli_dev.magicparticleslib.example.command.SpawnEssentiaStreamClientCommand;
 import com.klikli_dev.magicparticleslib.premade.particle.electricarc.ElectricArcParticleGroup;
 import com.klikli_dev.magicparticleslib.premade.particle.electricarc.ElectricArcParticleProvider;
 import com.klikli_dev.magicparticleslib.premade.particle.essentiastream.EssentiaStreamParticleGroup;
@@ -62,6 +63,7 @@ public class MagicParticlesLibClient {
         SpawnGlowTrailProjectileClientCommand.register(event.getDispatcher());
         SpawnNitorClientCommand.register(event.getDispatcher());
         SpawnAuraNodeClientCommand.register(event.getDispatcher());
+        SpawnEssentiaStreamClientCommand.register(event.getDispatcher());
     }
 
     private static void registerEntityRenderers(EntityRenderersEvent.RegisterRenderers event) {

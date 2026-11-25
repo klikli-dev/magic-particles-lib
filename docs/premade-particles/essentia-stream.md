@@ -88,7 +88,7 @@ Use `EssentiaStreamParticleOptions.of(from, to, color)` and its overloads `of(fr
 - At the default speed of 1.25 blocks per second, one tick is 0.0625 blocks, so a 1.25-block body is 20 ticks.
 - The drain takes `length` ticks after arrival, so a default stream empties about one second after it arrives (plus any merges).
 - Lifetime safety net: `(route length / cruise) × 4 + body ticks + 100` ticks, with a minimum of 40. The 4× slack covers the steering turns. Merges extend it by the ticks they add. A stream that has drained is removed earlier.
-- The straight-line flight time is `options.straightFlightTicks()`. Real flights take longer, because the steering turns; this value is what the mirror demo uses as a basis. The simulated flight times were not measured for this version.
+- The straight-line flight time is `options.straightFlightTicks()`. Real flights take longer, because the steering turns, so use it as a lower bound for timing rather than an exact arrival time. The simulated flight times were not measured for this version.
 
 ### Ports
 
@@ -212,4 +212,4 @@ Arguments for `essentia_stream`, in order. Each optional argument needs the ones
 
 The stream flies from roughly the player's eye to the block or entity being looked at (up to 16 blocks away). Each use picks a random color.
 
-`essentia_stream_mirrors` is a server command for operators. It places a demo next to the player, two blocks east and two blocks south, at head height. Stream A goes from a gold source block into mirror 1 (a pane with an item frame). Stream B goes from mirror 2 (a second pane with a frame, facing south), around a wall corner, to an emerald target. B starts after A's straight flight time times 2.5. Both streams use the same colour. The demo overwrites the blocks in its footprint (about 7 by 10 blocks) and removes item frames there from an earlier run.
+`essentia_stream_mirrors` is a server command for operators. It places a demo next to the player, two blocks east and two blocks south, at head height. Stream A goes from a gold source block into mirror 1 (a pane with an item frame). Stream B goes from mirror 2 (a second pane with a frame, facing south), around a wall corner, to an emerald target. Both streams are spawned in the same tick, independently, and they use the same colour. The demo overwrites the blocks in its footprint (about 7 by 10 blocks) and removes item frames there from an earlier run.

@@ -27,7 +27,6 @@ public class MagicParticlesLib {
         modEventBus.addListener(AuraNodePresets::createRegistry);
         modEventBus.addListener(MagicParticlesLib::gatherData);
         NeoForge.EVENT_BUS.addListener(SpawnEssentiaStreamMirrorsCommand::onRegisterCommands);
-        NeoForge.EVENT_BUS.addListener(SpawnEssentiaStreamMirrorsCommand::onServerTick);
         modContainer.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
     }
 

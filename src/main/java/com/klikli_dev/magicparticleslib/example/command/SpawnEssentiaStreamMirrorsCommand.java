@@ -20,19 +20,13 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
-import net.neoforged.neoforge.event.tick.ServerTickEvent;
-
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
 
 /**
  * Server-side demo of linked mirrors: stream A goes from a source into mirror 1, and stream B leaves mirror 2 and goes
- * around a wall corner to a target.
+ * around a wall corner to a target. Both streams are spawned in the same tick.
  * <p>
  * It is a server command because it places blocks and item frames. The streams are then sent as particles with
- * {@code ServerLevel.sendParticles}. Stream B starts after A's straight-line flight time, times a slack for steering.
- * The waypoint around the corner is written by hand; this demo does not run a pathfinder.
+ * {@code ServerLevel.sendParticles}. The waypoint around the corner is written by hand; this demo does not run a pathfinder.
  */
 public final class SpawnEssentiaStreamMirrorsCommand {
     private static final String ROOT_COMMAND = "mpl";
@@ -42,19 +36,14 @@ public final class SpawnEssentiaStreamMirrorsCommand {
     private static final int ORIGIN_OFFSET_X = 2;
     private static final int ORIGIN_OFFSET_Z = 2;
     private static final int PLANE_HEIGHT = 2;
-    // Stream B starts after this multiple of A's straight flight time, since real flights take longer than the straight line.
-    private static final double FLIGHT_TIME_SLACK = 2.5D;
     private static final float RADIUS = EssentiaStreamParticleOptions.DEFAULT_RADIUS;
     private static final int EXTEND = 0;
     private static final int LENGTH = EssentiaStreamParticleOptions.DEFAULT_LENGTH;
     // Random hues are sampled at this saturation and brightness, the same as the client command.
     private static final float RANDOM_SATURATION = 0.6F;
     private static final float RANDOM_BRIGHTNESS = 1.0F;
-    // Streams are sent to players within this many blocks of their source, so nearby players see the demo.
+    // Streams are sent to players within 512 blocks of their source, so nearby players see the demo.
     private static final boolean OVERRIDE_PARTICLE_LIMITER = true;
-
-    // Streams waiting for a delay. Ticked by onServerTick.
-    private static final List<PendingStream> PENDING = new ArrayList<>();
 
     private SpawnEssentiaStreamMirrorsCommand() {
     }
@@ -65,18 +54,6 @@ public final class SpawnEssentiaStreamMirrorsCommand {
                         .then(Commands.literal(MIRRORS_SUBCOMMAND)
                                 .requires(source -> Commands.LEVEL_GAMEMASTERS.check(source.permissions()))
                                 .executes(context -> spawn(context.getSource())))));
-    }
-
-    public static void onServerTick(ServerTickEvent.Post event) {
-        Iterator<PendingStream> iterator = PENDING.iterator();
-        while (iterator.hasNext()) {
-            PendingStream pending = iterator.next();
-            pending.remainingTicks--;
-            if (pending.remainingTicks <= 0) {
-                iterator.remove();
-                sendStream(pending.level, pending.options);
-            }
-        }
     }
 
     private static int spawn(CommandSourceStack source) {
@@ -126,12 +103,11 @@ public final class SpawnEssentiaStreamMirrorsCommand {
                 .build();
 
         sendStream(level, streamA);
-        int delay = (int) Math.ceil(streamA.straightFlightTicks() * FLIGHT_TIME_SLACK);
-        PENDING.add(new PendingStream(level, streamB, delay));
+        sendStream(level, streamB);
 
         source.sendSuccess(() -> Component.literal(String.format(
-                "Spawned the mirror demo at %d %d %d. Stream B starts in %d ticks.",
-                origin.getX(), origin.getY(), origin.getZ(), delay
+                "Spawned the mirror demo at %d %d %d.",
+                origin.getX(), origin.getY(), origin.getZ()
         )), false);
         return 1;
     }
@@ -158,17 +134,5 @@ public final class SpawnEssentiaStreamMirrorsCommand {
     private static void sendStream(ServerLevel level, EssentiaStreamParticleOptions options) {
         Vec3 from = options.from();
         level.sendParticles(options, OVERRIDE_PARTICLE_LIMITER, false, from.x, from.y, from.z, 1, 0.0D, 0.0D, 0.0D, 0.0D);
-    }
-
-    private static final class PendingStream {
-        private final ServerLevel level;
-        private final EssentiaStreamParticleOptions options;
-        private int remainingTicks;
-
-        private PendingStream(ServerLevel level, EssentiaStreamParticleOptions options, int remainingTicks) {
-            this.level = level;
-            this.options = options;
-            this.remainingTicks = remainingTicks;
-        }
     }
 }

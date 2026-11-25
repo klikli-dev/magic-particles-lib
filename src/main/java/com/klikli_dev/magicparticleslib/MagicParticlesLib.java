@@ -5,6 +5,7 @@
 package com.klikli_dev.magicparticleslib;
 
 import com.klikli_dev.magicparticleslib.datagen.MagicParticlesLibParticleDescriptionProvider;
+import com.klikli_dev.magicparticleslib.example.command.SpawnEssentiaStreamMirrorsCommand;
 import com.klikli_dev.magicparticleslib.premade.particle.auranode.AuraNodePresets;
 import com.klikli_dev.magicparticleslib.registry.EntityTypeRegistry;
 import com.klikli_dev.magicparticleslib.registry.ParticleTypeRegistry;
@@ -12,6 +13,7 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
+import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
 
 @Mod(MagicParticlesLib.MODID)
@@ -24,6 +26,8 @@ public class MagicParticlesLib {
         AuraNodePresets.PRESETS.register(modEventBus);
         modEventBus.addListener(AuraNodePresets::createRegistry);
         modEventBus.addListener(MagicParticlesLib::gatherData);
+        NeoForge.EVENT_BUS.addListener(SpawnEssentiaStreamMirrorsCommand::onRegisterCommands);
+        NeoForge.EVENT_BUS.addListener(SpawnEssentiaStreamMirrorsCommand::onServerTick);
         modContainer.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
     }
 

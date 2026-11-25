@@ -20,6 +20,7 @@ import org.jspecify.annotations.Nullable;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -401,11 +402,17 @@ public class EssentiaStreamParticle extends Particle {
         }
     }
 
-    // Drops samples that the back end has passed. The back end interpolates from the sample just behind it,
-    // so the samples down to a tick below the earlier of the two back ends are kept.
+    // Drops samples that the back end has passed. The back end interpolates from the last sample at or behind it, so the
+    // oldest sample is only removed while the next one is also at or behind the earlier of the two back ends. The sample
+    // that brackets the back end is then always kept, however far apart the samples are (slow streams have gaps of many ticks).
     private void pruneTrail() {
-        double keepFrom = Math.min(this.previousCutTime, this.cutTime) - 1.0D;
-        while (this.trail.size() > 1 && this.trail.peekLast().birth() < keepFrom) {
+        double backmost = Math.min(this.previousCutTime, this.cutTime);
+        while (this.trail.size() > 1) {
+            Iterator<TrailSample> fromOldest = this.trail.descendingIterator();
+            fromOldest.next();
+            if (fromOldest.next().birth() > backmost) {
+                break;
+            }
             this.trail.removeLast();
         }
     }

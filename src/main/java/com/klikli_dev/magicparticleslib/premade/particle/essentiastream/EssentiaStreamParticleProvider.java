@@ -39,6 +39,14 @@ public class EssentiaStreamParticleProvider implements ParticleProvider<Essentia
         return stream;
     }
 
+    /**
+     * Forgets all live streams so the next spawn creates a new one instead of merging into a stream from a previous level.
+     * The particles themselves are removed by the particle engine when the level changes.
+     */
+    public static void clearLiveStreams() {
+        LIVE_STREAMS.clear();
+    }
+
     private static void resetIfLevelChanged(ClientLevel level) {
         if (mergeLevel.get() != level) {
             LIVE_STREAMS.clear();

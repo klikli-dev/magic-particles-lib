@@ -33,7 +33,9 @@ import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.client.gui.ConfigurationScreen;
+import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
+import net.neoforged.neoforge.event.level.LevelEvent;
 import net.neoforged.neoforge.client.event.RegisterClientCommandsEvent;
 import net.neoforged.neoforge.client.event.RegisterParticleGroupsEvent;
 import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
@@ -48,6 +50,8 @@ public class MagicParticlesLibClient {
         modEventBus.addListener(MagicParticlesLibClient::registerParticleProviders);
         modEventBus.addListener(MagicParticlesLibClient::registerParticleGroups);
         NeoForge.EVENT_BUS.addListener(MagicParticlesLibClient::registerClientCommands);
+        NeoForge.EVENT_BUS.addListener(MagicParticlesLibClient::onLevelUnload);
+        NeoForge.EVENT_BUS.addListener(MagicParticlesLibClient::onLoggingOut);
         NeoForge.EVENT_BUS.addListener(SpawnElectricArcClientCommand::onClientTick);
         NeoForge.EVENT_BUS.addListener(SpawnLightningClientCommand::onClientTick);
         container.registerExtensionPoint(IConfigScreenFactory.class, ConfigurationScreen::new);
@@ -55,6 +59,17 @@ public class MagicParticlesLibClient {
 
     private static void registerRenderPipelines(RegisterRenderPipelinesEvent event) {
         RenderTypeRegistry.register(event);
+    }
+
+    private static void onLevelUnload(LevelEvent.Unload event) {
+        // The event is posted for server levels too, e.g. in singleplayer, so only client levels matter here.
+        if (event.getLevel().isClientSide()) {
+            EssentiaStreamParticleProvider.clearLiveStreams();
+        }
+    }
+
+    private static void onLoggingOut(ClientPlayerNetworkEvent.LoggingOut event) {
+        EssentiaStreamParticleProvider.clearLiveStreams();
     }
 
     private static void registerClientCommands(RegisterClientCommandsEvent event) {

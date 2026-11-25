@@ -18,6 +18,7 @@ import com.klikli_dev.magicparticleslib.premade.particle.essentiastream.Essentia
 import com.klikli_dev.magicparticleslib.premade.entity.rift.RiftRenderer;
 import com.klikli_dev.magicparticleslib.premade.particle.auranode.AuraNodeParticleGroup;
 import com.klikli_dev.magicparticleslib.premade.particle.auranode.AuraNodeParticleProvider;
+import com.klikli_dev.magicparticleslib.premade.particle.bubble.BubbleParticleProvider;
 import com.klikli_dev.magicparticleslib.premade.projectile.glowtrail.GlowTrailProjectileRenderer;
 import com.klikli_dev.magicparticleslib.premade.particle.lightning.LightningParticleGroup;
 import com.klikli_dev.magicparticleslib.premade.particle.lightning.LightningParticleProvider;
@@ -94,6 +95,7 @@ public class MagicParticlesLibClient {
         event.registerSpriteSet(ParticleTypeRegistry.NITOR.get(), NitorParticleProvider::new);
         event.registerSpecial(ParticleTypeRegistry.AURA_NODE.get(), new AuraNodeParticleProvider());
         event.registerSpecial(ParticleTypeRegistry.ESSENTIA_STREAM.get(), new EssentiaStreamParticleProvider());
+        event.registerSpriteSet(ParticleTypeRegistry.BUBBLE.get(), BubbleParticleProvider::new);
     }
 
     private static void registerParticleGroups(RegisterParticleGroupsEvent event) {

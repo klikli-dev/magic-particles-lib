@@ -38,7 +38,7 @@ import java.util.Optional;
  * @param waypoints      optional intermediate points the stream passes through before {@code to}
  * @param launchDirection optional direction to leave {@code from} in; empty for a seeded random direction
  * @param maxLength      maximum arc length of the stream in blocks; once reached, the tail is trimmed so the stream acts as a comet of this length
- * @param speed          head speed in blocks per second. Steering, launch and the default drain speed scale with it
+ * @param speed          head speed in blocks per second, default 6. The tail retracts at the same speed once it drains, and steering and launch scale with it
  */
 public record EssentiaStreamParticleOptions(Vec3 from, Vec3 to, int color, int seed, float radius, int extend, float verticalBoost, List<Vec3> waypoints, Optional<Vec3> launchDirection, float maxLength, float speed) implements ParticleOptions {
     public static final float DEFAULT_RADIUS = 0.12F;
@@ -47,7 +47,7 @@ public record EssentiaStreamParticleOptions(Vec3 from, Vec3 to, int color, int s
     public static final float DEFAULT_MAX_LENGTH = 16.0F;
     // Shorter streams are not useful, and very small values would make the trail degenerate.
     public static final float MIN_MAX_LENGTH = 0.5F;
-    public static final float DEFAULT_SPEED = 3.0F;
+    public static final float DEFAULT_SPEED = 6.0F;
     // Slowest is syrupy but still moves; fastest is a fast streak that the sampling and steering still handle.
     public static final float MIN_SPEED = 0.25F;
     public static final float MAX_SPEED = 20.0F;

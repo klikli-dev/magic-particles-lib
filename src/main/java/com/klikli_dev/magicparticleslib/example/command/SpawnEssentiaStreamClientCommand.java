@@ -19,6 +19,8 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 
+import java.util.Locale;
+
 public final class SpawnEssentiaStreamClientCommand {
     private static final String ROOT_COMMAND = "mpl";
     private static final String SPAWN_SUBCOMMAND = "spawn";
@@ -112,7 +114,11 @@ public final class SpawnEssentiaStreamClientCommand {
         int color = Mth.hsvToRgb(level.getRandom().nextFloat(), RANDOM_SATURATION, RANDOM_BRIGHTNESS);
         EssentiaStreams.spawn(level, targeting.origin(), targeting.target(), color, radius, extend, maxLength, speed);
 
-        source.sendSuccess(() -> Component.literal("Spawned essentia stream."), false);
+        source.sendSuccess(() -> Component.literal(String.format(
+                Locale.ROOT,
+                "Spawned essentia stream: extend %d, radius %.2f, maxLength %.1f, speed %.1f blocks/s.",
+                extend, radius, maxLength, speed
+        )), false);
         return 1;
     }
 }

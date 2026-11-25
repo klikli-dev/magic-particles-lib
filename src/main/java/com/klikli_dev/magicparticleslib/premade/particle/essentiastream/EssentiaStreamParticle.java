@@ -42,10 +42,7 @@ public class EssentiaStreamParticle extends Particle {
     private static final double TUNING_SPEED_BLOCKS_PER_SECOND = 1.0D;
     // Sampled points on the head's path are this far apart in arc length, in blocks.
     static final double TRAIL_POINT_SPACING = 0.1D;
-    // The back end retracts toward the destination at max(DRAIN_MIN_BLOCKS_PER_SECOND, DRAIN_SPEED_FACTOR * speed).
-    // Tying the drain to the speed means a fast stream also empties at a matching rate, instead of trailing for a long time.
-    private static final double DRAIN_MIN_BLOCKS_PER_SECOND = 2.0D;
-    private static final double DRAIN_SPEED_FACTOR = 2.0D;
+
     // Merging adds at least this many hold ticks.
     static final int MERGE_MIN_HOLD_TICKS = 5;
     // A merge into a draining stream is only allowed while at least this many sample points remain.
@@ -74,9 +71,12 @@ public class EssentiaStreamParticle extends Particle {
     private static final double MIN_HEAD_SEPARATION = 0.02D;
     // The launch hop decays by this factor per tick. Total hop height is the boost divided by (1 - decay).
     private static final double HOP_DECAY = 0.8D;
-    // Lifetime safety net: flight time at cruise speed, scaled for slow approaches, plus hold, drain and a margin.
-    private static final double LIFETIME_FLIGHT_SLACK = 1.25D;
-    private static final int LIFETIME_MARGIN_TICKS = 20;
+    // Lifetime safety net: flight time at cruise speed, plus hold, drain and a margin.
+    // Simulated arrivals took up to about 2.9 times the ideal cruise time: launches pointing away from the target need
+    // to turn, and the final approach is slow. The slack covers that, and the margin covers short routes.
+    // The lifetime only has to be generous: a stream that has drained is removed anyway.
+    private static final double LIFETIME_FLIGHT_SLACK = 4.0D;
+    private static final int LIFETIME_MARGIN_TICKS = 40;
     private static final int MIN_LIFETIME_TICKS = 40;
     // Streams with fewer render points are not drawn yet.
     private static final int MIN_RENDER_POINTS = 3;
@@ -142,7 +142,8 @@ public class EssentiaStreamParticle extends Particle {
         this.maxLength = options.maxLength();
         this.cruiseSpeed = options.speed() / TICKS_PER_SECOND;
         this.speedScale = options.speed() / TUNING_SPEED_BLOCKS_PER_SECOND;
-        this.drainBlocksPerTick = Math.max(DRAIN_MIN_BLOCKS_PER_SECOND, DRAIN_SPEED_FACTOR * options.speed()) / TICKS_PER_SECOND;
+        // The back end retracts at the head's speed, so the tail visibly leaves the source at the same pace as the head moved away.
+        this.drainBlocksPerTick = this.cruiseSpeed;
 
         // Everything random about this stream comes from its seed, so the same options look the same.
         RandomSource streamRandom = RandomSource.create(options.seed());

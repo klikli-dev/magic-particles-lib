@@ -9,3 +9,4 @@ Premade particles are reusable particle implementations shipped by MPL.
 - [Lightning particle](./lightning.md)
 - [Nitor particle](./nitor.md)
 - [Aura node particle](./aura-node.md)
+- [Essentia stream particle](./essentia-stream.md)

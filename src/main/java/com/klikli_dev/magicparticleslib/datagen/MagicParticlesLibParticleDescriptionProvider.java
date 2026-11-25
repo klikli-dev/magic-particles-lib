@@ -25,6 +25,7 @@ public class MagicParticlesLibParticleDescriptionProvider extends ParticleDescri
     @Override
     protected void addDescriptions() {
         this.spriteSet(ParticleTypeRegistry.GLOW.get(), Identifier.fromNamespaceAndPath(MagicParticlesLib.MODID, "particle_glow"));
+        this.spriteSet(ParticleTypeRegistry.BUBBLE.get(), Identifier.fromNamespaceAndPath(MagicParticlesLib.MODID, "particle_glow"));
         this.spriteSet(
                 ParticleTypeRegistry.NITOR.get(),
                 Identifier.fromNamespaceAndPath(MagicParticlesLib.MODID, "nitor_flame"),

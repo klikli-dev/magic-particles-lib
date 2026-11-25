@@ -1,0 +1,123 @@
+// SPDX-FileCopyrightText: 2026 klikli-dev
+//
+// SPDX-License-Identifier: MIT
+
+package com.klikli_dev.magicparticleslib.example.command;
+
+import com.klikli_dev.magicparticleslib.example.CommonTargeting;
+import com.klikli_dev.magicparticleslib.premade.particle.essentiastream.EssentiaStreamParticleOptions;
+import com.klikli_dev.magicparticleslib.premade.particle.essentiastream.EssentiaStreams;
+import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.arguments.FloatArgumentType;
+import com.mojang.brigadier.arguments.IntegerArgumentType;
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import com.mojang.brigadier.builder.RequiredArgumentBuilder;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+import net.minecraft.network.chat.Component;
+import net.minecraft.util.Mth;
+import net.minecraft.world.entity.player.Player;
+
+import java.util.Locale;
+
+public final class SpawnEssentiaStreamClientCommand {
+    private static final String ROOT_COMMAND = "mpl";
+    private static final String SPAWN_SUBCOMMAND = "spawn";
+    private static final String ESSENTIA_STREAM_SUBCOMMAND = "essentia_stream";
+    private static final String EXTEND_ARGUMENT = "extend";
+    private static final String RADIUS_ARGUMENT = "radius";
+    private static final String LENGTH_ARGUMENT = "length";
+    private static final String SPEED_ARGUMENT = "speed";
+    private static final int DEFAULT_EXTEND = EssentiaStreamParticleOptions.DEFAULT_EXTEND;
+    private static final float DEFAULT_RADIUS = EssentiaStreamParticleOptions.DEFAULT_RADIUS;
+    private static final int DEFAULT_LENGTH = EssentiaStreamParticleOptions.DEFAULT_LENGTH;
+    private static final float DEFAULT_SPEED = EssentiaStreamParticleOptions.DEFAULT_SPEED;
+    private static final float MIN_RADIUS = 0.01F;
+    private static final float MAX_RADIUS = 1.0F;
+    // Reach and entity margin used to find the stream destination, the same as the other example commands.
+    private static final double TARGET_RANGE = 16.0D;
+    private static final double ENTITY_MARGIN = 0.5D;
+    // Random hues are sampled at this saturation and brightness, so streams are colourful but still read as liquid.
+    private static final float RANDOM_SATURATION = 0.6F;
+    private static final float RANDOM_BRIGHTNESS = 1.0F;
+
+    private SpawnEssentiaStreamClientCommand() {
+    }
+
+    public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
+        dispatcher.register(Commands.literal(ROOT_COMMAND)
+                .then(Commands.literal(SPAWN_SUBCOMMAND)
+                        .then(essentiaStreamLiteral())));
+    }
+
+    // Arguments are positional: each optional argument requires the ones before it.
+    private static LiteralArgumentBuilder<CommandSourceStack> essentiaStreamLiteral() {
+        LiteralArgumentBuilder<CommandSourceStack> literal = Commands.literal(ESSENTIA_STREAM_SUBCOMMAND)
+                .executes(context -> spawn(context.getSource(), DEFAULT_EXTEND, DEFAULT_RADIUS, DEFAULT_LENGTH, DEFAULT_SPEED));
+
+        RequiredArgumentBuilder<CommandSourceStack, ?> extend = Commands.argument(EXTEND_ARGUMENT, IntegerArgumentType.integer(0))
+                .executes(context -> spawn(
+                        context.getSource(),
+                        IntegerArgumentType.getInteger(context, EXTEND_ARGUMENT),
+                        DEFAULT_RADIUS,
+                        DEFAULT_LENGTH,
+                        DEFAULT_SPEED
+                ));
+
+        RequiredArgumentBuilder<CommandSourceStack, ?> radius = Commands.argument(RADIUS_ARGUMENT, FloatArgumentType.floatArg(MIN_RADIUS, MAX_RADIUS))
+                .executes(context -> spawn(
+                        context.getSource(),
+                        IntegerArgumentType.getInteger(context, EXTEND_ARGUMENT),
+                        FloatArgumentType.getFloat(context, RADIUS_ARGUMENT),
+                        DEFAULT_LENGTH,
+                        DEFAULT_SPEED
+                ));
+
+        RequiredArgumentBuilder<CommandSourceStack, ?> length = Commands.argument(LENGTH_ARGUMENT, IntegerArgumentType.integer(EssentiaStreamParticleOptions.MIN_LENGTH, EssentiaStreamParticleOptions.MAX_LENGTH))
+                .executes(context -> spawn(
+                        context.getSource(),
+                        IntegerArgumentType.getInteger(context, EXTEND_ARGUMENT),
+                        FloatArgumentType.getFloat(context, RADIUS_ARGUMENT),
+                        IntegerArgumentType.getInteger(context, LENGTH_ARGUMENT),
+                        DEFAULT_SPEED
+                ));
+
+        RequiredArgumentBuilder<CommandSourceStack, ?> speed = Commands.argument(SPEED_ARGUMENT, FloatArgumentType.floatArg(EssentiaStreamParticleOptions.MIN_SPEED, EssentiaStreamParticleOptions.MAX_SPEED))
+                .executes(context -> spawn(
+                        context.getSource(),
+                        IntegerArgumentType.getInteger(context, EXTEND_ARGUMENT),
+                        FloatArgumentType.getFloat(context, RADIUS_ARGUMENT),
+                        IntegerArgumentType.getInteger(context, LENGTH_ARGUMENT),
+                        FloatArgumentType.getFloat(context, SPEED_ARGUMENT)
+                ));
+
+        length.then(speed);
+        radius.then(length);
+        extend.then(radius);
+        literal.then(extend);
+        return literal;
+    }
+
+    private static int spawn(CommandSourceStack source, int extend, float radius, int length, float speed) {
+        if (!(source.getEntity() instanceof Player player)) {
+            source.sendFailure(Component.literal("This command requires a local player."));
+            return 0;
+        }
+        if (!(player.level() instanceof ClientLevel level)) {
+            source.sendFailure(Component.literal("This command requires a client level."));
+            return 0;
+        }
+
+        CommonTargeting.Targeting targeting = CommonTargeting.resolve(player, TARGET_RANGE, ENTITY_MARGIN);
+        int color = Mth.hsvToRgb(level.getRandom().nextFloat(), RANDOM_SATURATION, RANDOM_BRIGHTNESS);
+        EssentiaStreams.spawn(level, targeting.origin(), targeting.target(), color, radius, extend, length, speed);
+
+        source.sendSuccess(() -> Component.literal(String.format(
+                Locale.ROOT,
+                "Spawned essentia stream: extend %d, radius %.2f, length %d ticks, speed %.2f blocks/s.",
+                extend, radius, length, speed
+        )), false);
+        return 1;
+    }
+}

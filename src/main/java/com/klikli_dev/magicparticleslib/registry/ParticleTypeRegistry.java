@@ -7,8 +7,12 @@ package com.klikli_dev.magicparticleslib.registry;
 import com.klikli_dev.magicparticleslib.MagicParticlesLib;
 import com.klikli_dev.magicparticleslib.premade.particle.auranode.AuraNodeParticleOptions;
 import com.klikli_dev.magicparticleslib.premade.particle.auranode.AuraNodeParticleType;
+import com.klikli_dev.magicparticleslib.premade.particle.bubble.BubbleParticleOptions;
+import com.klikli_dev.magicparticleslib.premade.particle.bubble.BubbleParticleType;
 import com.klikli_dev.magicparticleslib.premade.particle.electricarc.ElectricArcParticleOptions;
 import com.klikli_dev.magicparticleslib.premade.particle.electricarc.ElectricArcParticleType;
+import com.klikli_dev.magicparticleslib.premade.particle.essentiastream.EssentiaStreamParticleOptions;
+import com.klikli_dev.magicparticleslib.premade.particle.essentiastream.EssentiaStreamParticleType;
 import com.klikli_dev.magicparticleslib.premade.particle.glow.GlowParticleOptions;
 import com.klikli_dev.magicparticleslib.premade.particle.glow.GlowParticleType;
 import com.klikli_dev.magicparticleslib.premade.particle.lightning.LightningParticleOptions;
@@ -29,4 +33,6 @@ public final class ParticleTypeRegistry {
     public static final Supplier<ParticleType<LightningParticleOptions>> LIGHTNING = PARTICLE_TYPES.register("lightning", LightningParticleType::new);
     public static final Supplier<ParticleType<NitorParticleOptions>> NITOR = PARTICLE_TYPES.register("nitor", NitorParticleType::new);
     public static final Supplier<ParticleType<AuraNodeParticleOptions>> AURA_NODE = PARTICLE_TYPES.register("aura_node", AuraNodeParticleType::new);
+    public static final Supplier<ParticleType<EssentiaStreamParticleOptions>> ESSENTIA_STREAM = PARTICLE_TYPES.register("essentia_stream", EssentiaStreamParticleType::new);
+    public static final Supplier<ParticleType<BubbleParticleOptions>> BUBBLE = PARTICLE_TYPES.register("bubble", BubbleParticleType::new);
 }

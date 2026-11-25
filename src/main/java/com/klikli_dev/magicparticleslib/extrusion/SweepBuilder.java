@@ -74,7 +74,7 @@ final class SweepBuilder {
                 Vec2d transformedNormal = contourPoint.normal() == null ? Vec2d.ZERO : transform.transformNormal(contourPoint.normal());
                 Vec3 worldPosition = frame.toWorld(transformedPoint);
                 Vec3 worldNormal = computeWorldNormal(frame, transformedNormal, transformedPoint, contourIndex, index, rings);
-                TextureCoordinates uv = textureCoordinates(transformedPoint, transformedNormal, contourIndex, pathDistances[index]);
+                TextureCoordinates uv = textureCoordinates(transformedPoint, transformedNormal, contourIndex, pathDistances[index], this.path.get(index).textureV());
                 vertices.add(new RingVertex(worldPosition, worldNormal, uv, this.path.get(index).color()));
             }
             rings.add(new Ring(frame, List.copyOf(vertices), pathDistances[index], bisector));
@@ -112,13 +112,16 @@ final class SweepBuilder {
         return direction;
     }
 
-    private TextureCoordinates textureCoordinates(Vec2d transformedPoint, Vec2d transformedNormal, int contourIndex, double pathDistance) {
+    private TextureCoordinates textureCoordinates(Vec2d transformedPoint, Vec2d transformedNormal, int contourIndex, double pathDistance, Double textureV) {
         TextureCoordinateMode mode = this.options.textureMode();
         if (mode == TextureCoordinateMode.NONE) {
             return new TextureCoordinates(0.0F, 0.0F);
         }
 
-        double scaledPathDistance = this.options.textureLengthOffset() + pathDistance * this.options.textureLengthScale();
+        // An explicit per-point V wins over the path-length V, for the cylinder and default modes that use it.
+        double scaledPathDistance = textureV != null
+                ? textureV
+                : this.options.textureLengthOffset() + pathDistance * this.options.textureLengthScale();
 
         Vec2d sample = switch (mode) {
             case NORMAL_FLAT, NORMAL_CYLINDER, NORMAL_SPHERE, NORMAL_MODEL_FLAT, NORMAL_MODEL_CYLINDER, NORMAL_MODEL_SPHERE -> transformedNormal.lengthSquared() > 1.0E-12 ? transformedNormal.normalize() : transformedPoint.normalize();

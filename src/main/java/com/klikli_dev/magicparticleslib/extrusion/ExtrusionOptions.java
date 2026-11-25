@@ -18,8 +18,9 @@ import net.minecraft.world.phys.Vec3;
  * @param textureMode texture coordinate generation mode
  * @param tubeSegments number of sides used to draw cylinders and circular contours
  * @param roundJoinSegments number of pieces used to tessellate round joins
- * @param textureLengthScale scale applied to path-length-based texture coordinates
- * @param textureLengthOffset offset applied to path-length-based texture coordinates
+ * @param textureLengthScale scale applied to path-length-based texture coordinates; points with an explicit
+ *                           {@link PathPoint#textureV()} ignore it (for the cylinder and default texture modes)
+ * @param textureLengthOffset offset applied to path-length-based texture coordinates; ignored by the same points
  * @param degeneracyTolerance degeneracy tolerance used for repeated points and near-colinear segments
  */
 public record ExtrusionOptions(

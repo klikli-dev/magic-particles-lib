@@ -30,10 +30,13 @@ public final class RenderTypeRegistry {
     public static final ParticleRenderType LIGHTNING_GROUP = new ParticleRenderType(MagicParticlesLib.MODID + ":lightning");
     public static final ParticleRenderType NITOR_GROUP = new ParticleRenderType(MagicParticlesLib.MODID + ":nitor");
     public static final ParticleRenderType AURA_NODE_GROUP = new ParticleRenderType(MagicParticlesLib.MODID + ":aura_node");
+    public static final ParticleRenderType ESSENTIA_STREAM_GROUP = new ParticleRenderType(MagicParticlesLib.MODID + ":essentia_stream");
     private static final Identifier RIFT_SHADER_ID = Identifier.fromNamespaceAndPath(MagicParticlesLib.MODID, "core/rift");
     private static final Identifier ELECTRIC_ARC_SHADER_ID = Identifier.fromNamespaceAndPath(MagicParticlesLib.MODID, "core/electric_arc");
+    private static final Identifier ESSENTIA_STREAM_SHADER_ID = Identifier.fromNamespaceAndPath(MagicParticlesLib.MODID, "core/essentia_stream");
     private static final Identifier PORTAL_TEXTURE = Identifier.fromNamespaceAndPath("minecraft", "textures/entity/end_portal/end_portal.png");
     private static final Identifier ELECTRIC_ARC_TEXTURE = Identifier.fromNamespaceAndPath(MagicParticlesLib.MODID, "textures/effect/electric_arc.png");
+    private static final Identifier ESSENTIA_STREAM_TEXTURE = Identifier.fromNamespaceAndPath(MagicParticlesLib.MODID, "textures/effect/essentia_stream.png");
     private static final Identifier LIGHTNING_TEXTURE = Identifier.fromNamespaceAndPath(MagicParticlesLib.MODID, "textures/effect/lightning_core.png");
     private static final BlendFunction ALPHA_WEIGHTED_ADDITIVE = new BlendFunction(SourceFactor.SRC_ALPHA, DestFactor.ONE);
 
@@ -151,6 +154,19 @@ public final class RenderTypeRegistry {
             .withDepthStencilState(new DepthStencilState(CompareOp.LESS_THAN_OR_EQUAL, false))
             .build();
 
+    // Liquid, not light: plain alpha blending, no depth writes so overlapping streams don't cut holes in each other,
+    // and no culling so the inside of the tube shows through the translucent texture.
+    private static final RenderPipeline ESSENTIA_STREAM_PIPELINE = RenderPipeline.builder(RenderPipelines.MATRICES_FOG_SNIPPET, RenderPipelines.GLOBALS_SNIPPET)
+            .withLocation(Identifier.fromNamespaceAndPath(MagicParticlesLib.MODID, "pipeline/essentia_stream"))
+            .withVertexShader(ESSENTIA_STREAM_SHADER_ID)
+            .withFragmentShader(ESSENTIA_STREAM_SHADER_ID)
+            .withSampler("Sampler0")
+            .withVertexFormat(DefaultVertexFormat.ENTITY, VertexFormat.Mode.TRIANGLES)
+            .withCull(false)
+            .withColorTargetState(new ColorTargetState(BlendFunction.TRANSLUCENT))
+            .withDepthStencilState(new DepthStencilState(CompareOp.LESS_THAN_OR_EQUAL, false))
+            .build();
+
     private static final Function<Identifier, RenderType> RIFT_HALO = Util.memoize(RenderTypeRegistry::createRiftHalo);
     private static final Function<Identifier, RenderType> RIFT_PORTAL = Util.memoize(RenderTypeRegistry::createRiftPortal);
     private static final Function<Identifier, RenderType> ELECTRIC_ARC_HALO = Util.memoize(RenderTypeRegistry::createElectricArcHalo);
@@ -161,6 +177,7 @@ public final class RenderTypeRegistry {
     private static final Function<Identifier, RenderType> NITOR_CORE = Util.memoize(RenderTypeRegistry::createNitorCore);
     private static final Function<Identifier, RenderType> AURA_NODE = Util.memoize(RenderTypeRegistry::createAuraNode);
     private static final Function<Identifier, RenderType> AURA_NODE_NORMAL_BLEND = Util.memoize(RenderTypeRegistry::createAuraNodeNormalBlend);
+    private static final Function<Identifier, RenderType> ESSENTIA_STREAM = Util.memoize(RenderTypeRegistry::createEssentiaStream);
 
     private RenderTypeRegistry() {
     }
@@ -176,6 +193,7 @@ public final class RenderTypeRegistry {
         event.registerPipeline(NITOR_CORE_PIPELINE);
         event.registerPipeline(AURA_NODE_PIPELINE);
         event.registerPipeline(AURA_NODE_NORMAL_BLEND_PIPELINE);
+        event.registerPipeline(ESSENTIA_STREAM_PIPELINE);
     }
 
     public static RenderType riftHalo() {
@@ -216,6 +234,10 @@ public final class RenderTypeRegistry {
 
     public static RenderType auraNodeNormalBlend() {
         return AURA_NODE_NORMAL_BLEND.apply(TextureAtlas.LOCATION_PARTICLES);
+    }
+
+    public static RenderType essentiaStream() {
+        return ESSENTIA_STREAM.apply(ESSENTIA_STREAM_TEXTURE);
     }
 
     private static RenderType createRiftHalo(Identifier texture) {
@@ -305,5 +327,13 @@ public final class RenderTypeRegistry {
                 .useLightmap()
                 .createRenderSetup();
         return RenderType.create(MagicParticlesLib.MODID + "_aura_node_normal_blend", state);
+    }
+
+    private static RenderType createEssentiaStream(Identifier texture) {
+        RenderSetup state = RenderSetup.builder(ESSENTIA_STREAM_PIPELINE)
+                .bufferSize(RenderType.TRANSIENT_BUFFER_SIZE)
+                .withTexture("Sampler0", texture)
+                .createRenderSetup();
+        return RenderType.create(MagicParticlesLib.MODID + "_essentia_stream", state);
     }
 }

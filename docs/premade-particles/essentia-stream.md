@@ -54,7 +54,7 @@ Each sample's radius is set when it is laid. Then it is shaped when it is drawn:
 - **Ripple:** the radius varies by `±20%`, with the phase set by the sample's age in ticks, so the ripples bunch where the head was slow and stretch where it was fast.
 - **Wobble:** the centre line moves by up to 0.03 blocks per axis, at a different period per axis.
 - **Shimmer:** the colour only darkens, by up to 10%, following the same age-based phase.
-- **Texture:** the texture V of each ring is `0.075` per tick since its sample was laid, so the texture follows time, not distance. At the default speed that is about 1.2 repeats per block, and it stays the same when the speed changes. It flows continuously along the body, while flying and while draining.
+- **Texture:** the texture V of each ring is `0.075` per tick since its sample was laid, so the texture flows at the same rate per tick whatever the speed. Its density along the body depends on speed: repeats per block = `0.075 × 20 / speed = 1.5 / speed`. At the default speed of 1.25 blocks per second that is about 1.2 repeats per block, and at 2.5 blocks per second about 0.6. It flows continuously along the body, while flying and while draining.
 
 ### Arrival and merges
 
@@ -74,7 +74,7 @@ Each sample's radius is set when it is laid. Then it is shaped when it is drawn:
 | `color` | `int` / RGB | required | Packed RGB color, usually the aspect color |
 | `seed` | `int` | random | Seed for the launch direction, the radius variation and the pulse |
 | `radius` | `float` | `0.15` | Body radius in blocks, before the per-stream variation of about ±15% |
-| `extend` | `int` | `0` | Body ticks. When the stream is created, the body is `max(length, extend)` ticks long. Merges add `max(extend, 5)` ticks |
+| `extend` | `int` | `0` | Minimum body length in ticks when the stream is created: the body is `max(length, extend)` ticks long. When a spawn merges into a live stream, the body grows by `max(extend, 5)` ticks, so at least 5 |
 | `verticalBoost` | `float` | `0.0` | Initial upward speed in blocks per second. It bends the path up. Around `4.0` gives a clear bulge at the default speed. Clamped to `±20` |
 | `waypoints` | `List<Vec3>` | empty | Points the stream passes through before `to`. Pathfinding around walls is not included, see [Pathfinding](#pathfinding) |
 | `launchDirection` | `Optional<Vec3>` | empty | Direction to leave `from` in at cruise speed. Empty means a seeded launch |
@@ -88,7 +88,7 @@ Use `EssentiaStreamParticleOptions.of(from, to, color)` and its overloads `of(fr
 - At the default speed of 1.25 blocks per second, one tick is 0.0625 blocks, so a 1.25-block body is 20 ticks.
 - The drain takes `length` ticks after arrival, so a default stream empties about one second after it arrives (plus any merges).
 - Lifetime safety net: `(route length / cruise) × 4 + body ticks + 100` ticks, with a minimum of 40. The 4× slack covers the steering turns. Merges extend it by the ticks they add. A stream that has drained is removed earlier.
-- The straight-line flight time is `options.straightFlightTicks()`. Real flights take longer, because the steering turns, so use it as a lower bound for timing rather than an exact arrival time. The simulated flight times were not measured for this version.
+- `options.straightFlightTicks()` is an approximate estimate: the route length divided by the speed per tick. It ignores steering, so real flights usually take longer, but diagonal routes can be faster, because the per-axis velocity clamp lets the total speed reach up to about √3 times the speed. Use it as a rough guide, not a guaranteed bound. The simulated flight times were not measured for this version.
 
 ### Ports
 
@@ -211,7 +211,7 @@ Example helper commands for local testing:
 
 Arguments for `essentia_stream`, in order. Each optional argument needs the ones before it:
 
-- `extend`: extra body ticks at creation (default `0`)
+- `extend`: minimum body length in ticks at creation, default `0` (the body is `max(length, extend)`). Merges add at least 5 ticks
 - `radius`: body radius in blocks, between `0.01` and `1.0` (default `0.15`)
 - `length`: body length in ticks, between `1` and `400` (default `20`)
 - `speed`: head speed in blocks per second, between `0.25` and `20` (default `1.25`). The chat message after a spawn shows the values used.

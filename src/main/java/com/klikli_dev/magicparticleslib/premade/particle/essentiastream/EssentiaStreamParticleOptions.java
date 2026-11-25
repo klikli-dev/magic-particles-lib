@@ -35,7 +35,8 @@ import java.util.Optional;
  * @param color           packed RGB color (the upper 8 bits are ignored)
  * @param seed            seed for the launch direction and the radius variation and pulse
  * @param radius          body radius in blocks, before the per-stream variation
- * @param extend          extra body length in ticks, used when the stream is created if it is longer than {@code length}; merges add more
+ * @param extend          minimum body length in ticks when the stream is created (the body is {@code max(length, extend)});
+ *                        a merge into a live stream adds {@code max(extend, 5)} ticks
  * @param verticalBoost   initial upward speed in blocks per second; 0 disables it
  * @param waypoints       optional intermediate points the stream passes through before {@code to}
  * @param launchDirection optional direction to leave {@code from} in; empty for a seeded launch
@@ -126,8 +127,9 @@ public record EssentiaStreamParticleOptions(Vec3 from, Vec3 to, int color, int s
     }
 
     /**
-     * The number of ticks the head needs to fly the route at its speed, without steering delays.
-     * Real flights take longer, because the steering turns and the final approach is slow.
+     * An approximate flight time in ticks: the route length divided by the speed per tick. It ignores steering, so it is
+     * an estimate, not a bound. Real flights usually take longer because of the steering turns. Diagonal routes can be
+     * faster, since the per-axis velocity clamp lets the total speed reach up to about √3 times the speed.
      */
     public int straightFlightTicks() {
         double cruisePerTick = this.speed / TICKS_PER_SECOND;

@@ -12,6 +12,8 @@ import com.klikli_dev.magicparticleslib.example.command.SpawnNitorClientCommand;
 import com.klikli_dev.magicparticleslib.example.command.SpawnAuraNodeClientCommand;
 import com.klikli_dev.magicparticleslib.premade.particle.electricarc.ElectricArcParticleGroup;
 import com.klikli_dev.magicparticleslib.premade.particle.electricarc.ElectricArcParticleProvider;
+import com.klikli_dev.magicparticleslib.premade.particle.essentiastream.EssentiaStreamParticleGroup;
+import com.klikli_dev.magicparticleslib.premade.particle.essentiastream.EssentiaStreamParticleProvider;
 import com.klikli_dev.magicparticleslib.premade.entity.rift.RiftRenderer;
 import com.klikli_dev.magicparticleslib.premade.particle.auranode.AuraNodeParticleGroup;
 import com.klikli_dev.magicparticleslib.premade.particle.auranode.AuraNodeParticleProvider;
@@ -74,6 +76,7 @@ public class MagicParticlesLibClient {
         event.registerSpecial(ParticleTypeRegistry.LIGHTNING.get(), new LightningParticleProvider());
         event.registerSpriteSet(ParticleTypeRegistry.NITOR.get(), NitorParticleProvider::new);
         event.registerSpecial(ParticleTypeRegistry.AURA_NODE.get(), new AuraNodeParticleProvider());
+        event.registerSpecial(ParticleTypeRegistry.ESSENTIA_STREAM.get(), new EssentiaStreamParticleProvider());
     }
 
     private static void registerParticleGroups(RegisterParticleGroupsEvent event) {
@@ -81,5 +84,6 @@ public class MagicParticlesLibClient {
         event.register(RenderTypeRegistry.LIGHTNING_GROUP, LightningParticleGroup::new);
         event.register(RenderTypeRegistry.NITOR_GROUP, NitorParticleGroup::new);
         event.register(RenderTypeRegistry.AURA_NODE_GROUP, AuraNodeParticleGroup::new);
+        event.register(RenderTypeRegistry.ESSENTIA_STREAM_GROUP, EssentiaStreamParticleGroup::new);
     }
 }

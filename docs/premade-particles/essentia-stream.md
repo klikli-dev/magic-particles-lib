@@ -1,6 +1,6 @@
 # Essentia Stream Particle
 
-The essentia stream particle renders a glowing liquid stream: a worm-shaped body that flies from a source to a destination, then drains into it. Typical uses are jars or devices feeding an altar, pipes announcing a transfer, mirrors that relay a stream, or an urn pouring water (use a blue color and a `verticalBoost` for a visible bulge).
+The essentia stream particle renders a glowing liquid stream: a worm-shaped body that flies from a source to a destination, then drains into it.
 
 ## Registry ids
 
@@ -92,10 +92,17 @@ Use `EssentiaStreamParticleOptions.of(from, to, color)` and its overloads `of(fr
 
 ### Ports
 
-A `StreamPort` is a point where a stream leaves or enters a block through one of its faces. It has an `anchor` (where the stream starts or ends) and a `clearance` point further out along the face's normal.
+A `StreamPort` is a point where a stream leaves or enters a block through one of its faces. It has two points on the face's normal:
 
-- `StreamPort.nozzle(BlockPos pos, Direction facing)`: the anchor is 0.05 blocks outside the face, and the clearance is 0.65 blocks further out. Use it for jars, pipes and anything that spouts.
-- `StreamPort.pane(BlockPos pos, Direction facing)`: the anchor is 0.14 blocks in front of the face (the block centre plus `facing × 0.64`), and the clearance is 0.78 blocks in front of the face (`facing × 1.28`). Use it for mirrors and flat faces.
+- The **anchor** is where the stream starts or ends: the mouth of the nozzle, or the surface of the mirror.
+- The **clearance** is a point further out along the normal, in the open space in front of the face. The stream must pass through it on the way out of or into the anchor.
+
+The gap between the anchor and the clearance is a short straight run-up that is perpendicular to the face. A stream without a clearance steers toward its next point from the moment it starts, and seeks its destination from wherever it happens to be. It can leave sideways, skim along the face, cut through the corner of the block, or arrive at a slant. With a clearance, a leaving stream first shoots straight out of the face before it curves away. An arriving stream first lines up in front of the face, then plunges straight in. The face then reads as a spout or an opening, not as a point that the stream happens to touch.
+
+The distance between the anchor and the clearance sets how long that straight section is. A longer gap gives a more pronounced spout and a straighter entry. A shorter gap lets the stream bend sooner. Keep the clearance in open air: the stream does not avoid blocks, so a clearance inside a block drags the stream through that block.
+
+- `StreamPort.nozzle(BlockPos pos, Direction facing)`: the anchor is 0.05 blocks outside the face, and the clearance is 0.65 blocks outside the face. The straight section is 0.6 blocks long. Use it for jars, pipes and anything that spouts.
+- `StreamPort.pane(BlockPos pos, Direction facing)`: the anchor is 0.14 blocks in front of the face (the block centre plus `facing × 0.64`), and the clearance is 0.78 blocks in front of the face (`facing × 1.28`). The straight section is 0.64 blocks long. Use it for mirrors and flat faces.
 - `StreamPort.of(Vec3 anchor, Vec3 clearance)`: any other point.
 
 An **exit** starts the stream at its anchor and launches it toward its clearance point, which becomes the first waypoint. An **entry** makes the clearance point the last waypoint and the anchor the destination, so the stream dives straight in through the face.

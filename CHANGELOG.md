@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [release/v26.1.2-1.9.0] - 2026-11-25
+### :sparkles: New Features
+- [`bd20f5e`](https://github.com/klikli-dev/magic-particles-lib/commit/bd20f5ea3e2247a127f19d5ae794554536499fdf) - essentia stream *(PR [#14](https://github.com/klikli-dev/magic-particles-lib/pull/14) by [@klikli-dev](https://github.com/klikli-dev))*
+
+
 ## [release/v26.1.2-1.8.0] - 2026-08-19
 ### :sparkles: New Features
 - [`9d18d3a`](https://github.com/klikli-dev/magic-particles-lib/commit/9d18d3a63fce6ca74d66fe4ff8f4792f980807aa) - add aura node *(PR [#12](https://github.com/klikli-dev/magic-particles-lib/pull/12) by [@klikli-dev](https://github.com/klikli-dev))*
@@ -56,3 +61,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [release/v26.1.2-1.5.0]: https://github.com/klikli-dev/magic-particles-lib/compare/release/v26.1.2-1.4.0...release/v26.1.2-1.5.0
 [release/v26.1.2-1.7.0]: https://github.com/klikli-dev/magic-particles-lib/compare/release/v26.1.2-1.5.1...release/v26.1.2-1.7.0
 [release/v26.1.2-1.8.0]: https://github.com/klikli-dev/magic-particles-lib/compare/release/v26.1.2-1.7.0...release/v26.1.2-1.8.0
+[release/v26.1.2-1.9.0]: https://github.com/klikli-dev/magic-particles-lib/compare/release/v26.1.2-1.8.0...release/v26.1.2-1.9.0

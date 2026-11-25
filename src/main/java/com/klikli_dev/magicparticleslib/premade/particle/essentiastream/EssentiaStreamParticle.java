@@ -36,16 +36,16 @@ import java.util.List;
  * </ul>
  */
 public class EssentiaStreamParticle extends Particle {
-    // Head speed in blocks per second, and the same speed in blocks per tick.
-    private static final double CRUISE_SPEED_BLOCKS_PER_SECOND = 1.0D;
     private static final double TICKS_PER_SECOND = 20.0D;
-    private static final double CRUISE_SPEED = CRUISE_SPEED_BLOCKS_PER_SECOND / TICKS_PER_SECOND;
+    // The steering, slow-down, bias and launch constants below were tuned at this speed. Distances and rates scale with
+    // the stream's speed relative to it, so the approach keeps its shape in blocks and only gets faster.
+    private static final double TUNING_SPEED_BLOCKS_PER_SECOND = 1.0D;
     // Sampled points on the head's path are this far apart in arc length, in blocks.
     static final double TRAIL_POINT_SPACING = 0.1D;
-    // Speed at which the back end retracts toward the destination while draining, in blocks per second.
-    private static final double DRAIN_BLOCKS_PER_SECOND = 2.0D;
-    // Drain speed in blocks per tick. The mesh builder uses it so the texture scroll matches the drain.
-    static final double DRAIN_BLOCKS_PER_TICK = DRAIN_BLOCKS_PER_SECOND / TICKS_PER_SECOND;
+    // The back end retracts toward the destination at max(DRAIN_MIN_BLOCKS_PER_SECOND, DRAIN_SPEED_FACTOR * speed).
+    // Tying the drain to the speed means a fast stream also empties at a matching rate, instead of trailing for a long time.
+    private static final double DRAIN_MIN_BLOCKS_PER_SECOND = 2.0D;
+    private static final double DRAIN_SPEED_FACTOR = 2.0D;
     // Merging adds at least this many hold ticks.
     static final int MERGE_MIN_HOLD_TICKS = 5;
     // A merge into a draining stream is only allowed while at least this many sample points remain.
@@ -108,6 +108,10 @@ public class EssentiaStreamParticle extends Particle {
     private final float baseRadius;
     private final float phase;
     private final float maxLength;
+    // Head speed in blocks per tick, the speed relative to the tuning speed, and the drain speed in blocks per tick.
+    private final double cruiseSpeed;
+    private final double speedScale;
+    private final double drainBlocksPerTick;
     // Committed path samples at every TRAIL_POINT_SPACING of arc length, newest (head side) first.
     private final Deque<TrailSample> trail = new ArrayDeque<>();
     // Reused every frame to hold the render snapshot.
@@ -136,6 +140,9 @@ public class EssentiaStreamParticle extends Particle {
         this.route = buildRoute(options.from(), options.waypoints(), options.to());
         this.rgbColor = options.color();
         this.maxLength = options.maxLength();
+        this.cruiseSpeed = options.speed() / TICKS_PER_SECOND;
+        this.speedScale = options.speed() / TUNING_SPEED_BLOCKS_PER_SECOND;
+        this.drainBlocksPerTick = Math.max(DRAIN_MIN_BLOCKS_PER_SECOND, DRAIN_SPEED_FACTOR * options.speed()) / TICKS_PER_SECOND;
 
         // Everything random about this stream comes from its seed, so the same options look the same.
         RandomSource streamRandom = RandomSource.create(options.seed());
@@ -145,8 +152,8 @@ public class EssentiaStreamParticle extends Particle {
 
         this.hop = new Vec3(0.0D, options.verticalBoost() / TICKS_PER_SECOND, 0.0D);
         this.velocity = options.launchDirection()
-                .map(direction -> direction.normalize().scale(CRUISE_SPEED))
-                .orElseGet(() -> randomDirection(streamRandom).scale(CRUISE_SPEED * RANDOM_LAUNCH_SPEED_FACTOR));
+                .map(direction -> direction.normalize().scale(this.cruiseSpeed))
+                .orElseGet(() -> randomDirection(streamRandom).scale(this.cruiseSpeed * RANDOM_LAUNCH_SPEED_FACTOR));
 
         // Vanilla particle physics must not move the stream.
         this.gravity = 0.0F;
@@ -164,7 +171,7 @@ public class EssentiaStreamParticle extends Particle {
         this.nextCommitArc = TRAIL_POINT_SPACING;
         this.trail.addFirst(this.head);
         this.holdRemaining = options.extend();
-        this.lifetime = computeLifetime(this.route, this.holdRemaining, this.maxLength);
+        this.lifetime = computeLifetime(this.route, this.holdRemaining, this.maxLength, this.cruiseSpeed, this.drainBlocksPerTick);
         this.syncPosition();
         this.setBoundingBox(buildBounds(this.route, this.baseRadius, options.verticalBoost()));
     }
@@ -253,7 +260,9 @@ public class EssentiaStreamParticle extends Particle {
 
         float time = this.age + partialTickTime;
         float dissolveTime = this.dissolveTicks > 0 ? this.dissolveTicks + partialTickTime : 0.0F;
-        return EssentiaStreamMeshBuilder.build(samples, this.origin, this.baseRadius, this.rgbColor, time, this.phase, dissolveTime);
+        // The texture only scrolls while draining, and by exactly the distance the back end has moved, so it matches the drain.
+        float textureOffset = (float) (dissolveTime * this.drainBlocksPerTick * EssentiaStreamMeshBuilder.TEXTURE_REPEATS_PER_BLOCK);
+        return EssentiaStreamMeshBuilder.build(samples, this.origin, this.baseRadius, this.rgbColor, time, this.phase, textureOffset);
     }
 
     /**
@@ -316,7 +325,9 @@ public class EssentiaStreamParticle extends Particle {
     private void flyTowardsDestination() {
         Vec3 target = this.route.get(this.routeIndex);
         boolean finalLeg = this.isFinalLeg();
-        while (!finalLeg && this.head.position().distanceTo(target) < WAYPOINT_REACH_DISTANCE) {
+        // At high speed the head can move more than the reach distance in one tick, so the reach is at least two ticks of travel.
+        double waypointReach = Math.max(WAYPOINT_REACH_DISTANCE, 2.0D * this.cruiseSpeed);
+        while (!finalLeg && this.head.position().distanceTo(target) < waypointReach) {
             this.routeIndex++;
             target = this.route.get(this.routeIndex);
             finalLeg = this.isFinalLeg();
@@ -324,22 +335,25 @@ public class EssentiaStreamParticle extends Particle {
 
         Vec3 toTarget = target.subtract(this.head.position());
         double distance = toTarget.length();
-        if (finalLeg && distance <= ARRIVE_STOP_DISTANCE) {
+        // The head also arrives when its last step was longer than the remaining distance, so it cannot pass the destination.
+        if (finalLeg && distance <= Math.max(ARRIVE_STOP_DISTANCE, this.velocity.length())) {
             this.arrive();
             return;
         }
 
-        double desiredSpeed = CRUISE_SPEED;
+        // The slow-down and steering distances scale with speed, and the upward bias does too. Both the
+        // approach and the bulge angle then keep the tuned shape, and do not overshoot more at higher speeds.
+        double desiredSpeed = this.cruiseSpeed;
         if (finalLeg) {
-            desiredSpeed *= Mth.clamp(distance / SLOW_DISTANCE, SLOW_MIN_FACTOR, 1.0D);
+            desiredSpeed *= Mth.clamp(distance / (SLOW_DISTANCE * this.speedScale), SLOW_MIN_FACTOR, 1.0D);
         }
         // normalize() returns zero for a zero-length vector, so coincident points cannot produce NaNs here.
         Vec3 desiredVelocity = toTarget.normalize().scale(desiredSpeed);
-        double steering = Mth.lerp(Mth.clamp(1.0D - distance / STEER_NEAR_DISTANCE, 0.0D, 1.0D), STEER_FAR, STEER_NEAR);
+        double steering = Mth.lerp(Mth.clamp(1.0D - distance / (STEER_NEAR_DISTANCE * this.speedScale), 0.0D, 1.0D), STEER_FAR, STEER_NEAR);
         Vec3 steered = this.velocity.add(desiredVelocity.subtract(this.velocity).scale(steering));
-        Vec3 next = steered.scale(VELOCITY_DAMPING).add(0.0D, UPWARD_BIAS, 0.0D);
+        Vec3 next = steered.scale(VELOCITY_DAMPING).add(0.0D, UPWARD_BIAS * this.speedScale, 0.0D);
         double speed = next.length();
-        this.velocity = speed > CRUISE_SPEED ? next.scale(CRUISE_SPEED / speed) : next;
+        this.velocity = speed > this.cruiseSpeed ? next.scale(this.cruiseSpeed / speed) : next;
 
         Vec3 position = this.head.position().add(this.velocity).add(this.hop);
         this.hop = this.hop.scale(HOP_DECAY);
@@ -381,7 +395,7 @@ public class EssentiaStreamParticle extends Particle {
     }
 
     private void drain() {
-        this.backArc = Math.min(this.backArc + DRAIN_BLOCKS_PER_TICK, this.head.arc());
+        this.backArc = Math.min(this.backArc + this.drainBlocksPerTick, this.head.arc());
         this.dissolveTicks++;
         this.emitDissolveDroplet();
         if (this.remainingLength() < MIN_HEAD_SEPARATION) {
@@ -389,9 +403,10 @@ public class EssentiaStreamParticle extends Particle {
         }
     }
 
-    // Drops samples that the back end has passed. Two spacings of slack keep the back end interpolable.
+    // Drops samples that the back end has passed. The back end interpolates between previousBackArc and backArc,
+    // so the samples down to two spacings below previousBackArc are kept. Fast drains move the back end many spacings per tick.
     private void pruneTrail() {
-        double keepFrom = this.backArc - 2.0D * TRAIL_POINT_SPACING;
+        double keepFrom = this.previousBackArc - 2.0D * TRAIL_POINT_SPACING;
         while (this.trail.size() > 1 && this.trail.peekLast().arc() < keepFrom) {
             this.trail.removeLast();
         }
@@ -476,18 +491,18 @@ public class EssentiaStreamParticle extends Particle {
     }
 
     // The longest drain is a full maxLength of stream, because the back end never trails the head by more than that.
-    private static int drainTicks(double length) {
-        return (int) Math.ceil(length / DRAIN_BLOCKS_PER_TICK);
+    private static int drainTicks(double length, double drainBlocksPerTick) {
+        return (int) Math.ceil(length / drainBlocksPerTick);
     }
 
-    // Lifetime covers the flight, the hold, a full drain, and a margin.
-    private static int computeLifetime(List<Vec3> route, int holdTicks, double maxLength) {
+    // Lifetime covers the flight at the stream's speed, the hold, a full drain, and a margin.
+    private static int computeLifetime(List<Vec3> route, int holdTicks, double maxLength, double cruiseSpeed, double drainBlocksPerTick) {
         double routeLength = 0.0D;
         for (int index = 1; index < route.size(); index++) {
             routeLength += route.get(index - 1).distanceTo(route.get(index));
         }
-        int flightTicks = (int) Math.ceil(routeLength / CRUISE_SPEED * LIFETIME_FLIGHT_SLACK);
-        return Math.max(MIN_LIFETIME_TICKS, flightTicks + holdTicks + drainTicks(maxLength) + LIFETIME_MARGIN_TICKS);
+        int flightTicks = (int) Math.ceil(routeLength / cruiseSpeed * LIFETIME_FLIGHT_SLACK);
+        return Math.max(MIN_LIFETIME_TICKS, flightTicks + holdTicks + drainTicks(maxLength, drainBlocksPerTick) + LIFETIME_MARGIN_TICKS);
     }
 
     // Covers the route, the body radius, wobble, curve bulge and launch hop, so frustum culling never hides a visible stream.

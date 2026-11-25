@@ -32,9 +32,8 @@ final class EssentiaStreamMeshBuilder {
     private static final Contour2D TUBE_CONTOUR = Contour2D.circle(1.0D, TUBE_SEGMENTS);
     // Texture repeats per trail point (about 0.1 blocks), so repeats per block is derived from the sample spacing.
     private static final double TEXTURE_REPEATS_PER_POINT = 0.075D;
-    private static final double TEXTURE_REPEATS_PER_BLOCK = TEXTURE_REPEATS_PER_POINT / EssentiaStreamParticle.TRAIL_POINT_SPACING;
-    // The dissolve scroll moves the texture at the drain speed, so the pattern flows into the target as the stream drains.
-    private static final double DISSOLVE_REPEATS_PER_TICK = EssentiaStreamParticle.DRAIN_BLOCKS_PER_TICK * TEXTURE_REPEATS_PER_BLOCK;
+    // Package-private so the particle can scale the dissolve scroll by the drain speed.
+    static final double TEXTURE_REPEATS_PER_BLOCK = TEXTURE_REPEATS_PER_POINT / EssentiaStreamParticle.TRAIL_POINT_SPACING;
     // Head tip swells from zero radius over this distance, in blocks.
     private static final double TIP_LENGTH = 0.35D;
     // Tail end tapers to zero over this distance once the back end is free of the source.
@@ -73,9 +72,10 @@ final class EssentiaStreamMeshBuilder {
      * Extrudes the stream.
      * <p>
      * Positions are relative to origin, so the float vertices stay small; the caller translates the pose by origin - camera.
-     * dissolveTime is 0 while the stream is growing or holding; while draining it is the number of ticks since the drain started.
+     * textureOffset is the dissolve scroll in texture repeats. It is 0 while the stream is growing or holding, and while
+     * draining it grows with the distance the back end has moved.
      */
-    static ExtrusionMesh build(List<EssentiaStreamParticle.TrailSample> samples, Vec3 origin, float baseRadius, int rgbColor, float time, float phase, float dissolveTime) {
+    static ExtrusionMesh build(List<EssentiaStreamParticle.TrailSample> samples, Vec3 origin, float baseRadius, int rgbColor, float time, float phase, float textureOffset) {
         int count = samples.size();
         double frontArc = samples.get(0).arc();
         double backArc = samples.get(count - 1).arc();
@@ -98,7 +98,7 @@ final class EssentiaStreamMeshBuilder {
                     .withContourTransform(AffineTransform2D.scale(radius, radius)));
         }
 
-        ExtrusionOptions options = dissolveTime > 0.0F ? options(dissolveTime * DISSOLVE_REPEATS_PER_TICK) : OPTIONS;
+        ExtrusionOptions options = textureOffset != 0.0F ? options(textureOffset) : OPTIONS;
         return Extrusion.engine().extrude(TUBE_CONTOUR, points, options);
     }
 

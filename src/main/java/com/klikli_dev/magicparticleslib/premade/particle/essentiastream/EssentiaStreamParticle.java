@@ -87,6 +87,7 @@ public class EssentiaStreamParticle extends Particle {
     private static volatile boolean dropletsEnabled = true;
 
     private final Vec3 destination;
+    private final Vec3 origin;
     private final List<Vec3> route;
     private final int rgbColor;
     private final float baseRadius;
@@ -104,6 +105,7 @@ public class EssentiaStreamParticle extends Particle {
         // Zero motion: the stream is simulated by this class, not by the vanilla particle physics.
         super(level, options.from().x, options.from().y, options.from().z, 0.0D, 0.0D, 0.0D);
         this.destination = options.to();
+        this.origin = options.from();
         this.route = buildRoute(options.from(), options.waypoints(), options.to());
         this.rgbColor = options.color();
 
@@ -187,7 +189,7 @@ public class EssentiaStreamParticle extends Particle {
      * Builds the render snapshot for this frame.
      * <p>
      * While the head is flying, the newest trail point is interpolated between the last two ticks using partialTick.
-     * Returns null if the stream has too few points to draw.
+     * The mesh is relative to {@link #renderOrigin()}. Returns null if the stream has too few points to draw.
      */
     public @Nullable ExtrusionMesh renderData(float partialTickTime) {
         if (!this.isAlive() || this.trail.size() < MIN_RENDER_POINTS) {
@@ -196,7 +198,14 @@ public class EssentiaStreamParticle extends Particle {
 
         float time = this.age + partialTickTime;
         float dissolveTime = this.dissolveTicks > 0 ? this.dissolveTicks + partialTickTime : 0.0F;
-        return EssentiaStreamMeshBuilder.build(this.snapshot(partialTickTime), this.baseRadius, this.rgbColor, time, this.phase, dissolveTime);
+        return EssentiaStreamMeshBuilder.build(this.snapshot(partialTickTime), this.origin, this.baseRadius, this.rgbColor, time, this.phase, dissolveTime);
+    }
+
+    /**
+     * The point the mesh from {@link #renderData(float)} is relative to. It is constant for the life of the stream.
+     */
+    public Vec3 renderOrigin() {
+        return this.origin;
     }
 
     private List<TrailSample> snapshot(float partialTickTime) {

@@ -63,12 +63,13 @@ final class EssentiaStreamMeshBuilder {
 
     // Extrudes the trail. Radii, colours and wobble are evaluated per point so the tube animates each frame.
     // dissolveTime is 0 while flying; while draining it is the number of ticks since the drain started.
-    static ExtrusionMesh build(List<EssentiaStreamParticle.TrailSample> trail, float baseRadius, int rgbColor, float time, float phase, float dissolveTime) {
+    // Positions are relative to origin, so the float vertices stay small; the caller translates the pose by origin - camera.
+    static ExtrusionMesh build(List<EssentiaStreamParticle.TrailSample> trail, Vec3 origin, float baseRadius, int rgbColor, float time, float phase, float dissolveTime) {
         int count = trail.size();
         ArrayList<PathPoint> points = new ArrayList<>(count);
         for (int index = 0; index < count; index++) {
             EssentiaStreamParticle.TrailSample sample = trail.get(index);
-            Vec3 position = wobble(sample.position(), time, phase, index);
+            Vec3 position = wobble(sample.position().subtract(origin), time, phase, index);
             float radius = radius(baseRadius, time, phase, index, count, sample.arrival());
             points.add(PathPoint.of(position)
                     .withColor(shimmer(rgbColor, time, phase, index))

@@ -19,7 +19,7 @@ public class EssentiaStreamParticleGroup extends ParticleGroup<EssentiaStreamPar
 
     @Override
     public EssentiaStreamRenderState extractRenderState(Frustum frustum, Camera camera, float partialTickTime) {
-        ArrayList<ExtrusionMesh> meshes = new ArrayList<>(this.particles.size());
+        ArrayList<EssentiaStreamRenderState.Entry> entries = new ArrayList<>(this.particles.size());
         for (EssentiaStreamParticle particle : this.particles) {
             // Streams are culled by their bounds, which cover the whole route, so off-screen streams cost nothing.
             if (!frustum.isVisible(particle.getBoundingBox())) {
@@ -31,9 +31,9 @@ public class EssentiaStreamParticleGroup extends ParticleGroup<EssentiaStreamPar
                 continue;
             }
 
-            meshes.add(mesh);
+            entries.add(new EssentiaStreamRenderState.Entry(mesh, particle.renderOrigin()));
         }
 
-        return new EssentiaStreamRenderState(meshes);
+        return new EssentiaStreamRenderState(entries);
     }
 }

@@ -311,7 +311,8 @@ public final class ExtrusionEngine {
                         new Vec3(radius * Math.cos(theta), radius * Math.sin(theta), z),
                         PathPoint.DEFAULT_COLOR,
                         transform,
-                        0.0
+                        0.0,
+                        null
                 ));
                 theta += deltaAngle;
                 radius += radiusStep;

@@ -10,11 +10,15 @@ import com.klikli_dev.magicparticleslib.example.command.SpawnGlowTrailProjectile
 import com.klikli_dev.magicparticleslib.example.command.SpawnLightningClientCommand;
 import com.klikli_dev.magicparticleslib.example.command.SpawnNitorClientCommand;
 import com.klikli_dev.magicparticleslib.example.command.SpawnAuraNodeClientCommand;
+import com.klikli_dev.magicparticleslib.example.command.SpawnEssentiaStreamClientCommand;
 import com.klikli_dev.magicparticleslib.premade.particle.electricarc.ElectricArcParticleGroup;
 import com.klikli_dev.magicparticleslib.premade.particle.electricarc.ElectricArcParticleProvider;
+import com.klikli_dev.magicparticleslib.premade.particle.essentiastream.EssentiaStreamParticleGroup;
+import com.klikli_dev.magicparticleslib.premade.particle.essentiastream.EssentiaStreamParticleProvider;
 import com.klikli_dev.magicparticleslib.premade.entity.rift.RiftRenderer;
 import com.klikli_dev.magicparticleslib.premade.particle.auranode.AuraNodeParticleGroup;
 import com.klikli_dev.magicparticleslib.premade.particle.auranode.AuraNodeParticleProvider;
+import com.klikli_dev.magicparticleslib.premade.particle.bubble.BubbleParticleProvider;
 import com.klikli_dev.magicparticleslib.premade.projectile.glowtrail.GlowTrailProjectileRenderer;
 import com.klikli_dev.magicparticleslib.premade.particle.lightning.LightningParticleGroup;
 import com.klikli_dev.magicparticleslib.premade.particle.lightning.LightningParticleProvider;
@@ -30,7 +34,9 @@ import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.client.gui.ConfigurationScreen;
+import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
+import net.neoforged.neoforge.event.level.LevelEvent;
 import net.neoforged.neoforge.client.event.RegisterClientCommandsEvent;
 import net.neoforged.neoforge.client.event.RegisterParticleGroupsEvent;
 import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
@@ -45,6 +51,8 @@ public class MagicParticlesLibClient {
         modEventBus.addListener(MagicParticlesLibClient::registerParticleProviders);
         modEventBus.addListener(MagicParticlesLibClient::registerParticleGroups);
         NeoForge.EVENT_BUS.addListener(MagicParticlesLibClient::registerClientCommands);
+        NeoForge.EVENT_BUS.addListener(MagicParticlesLibClient::onLevelUnload);
+        NeoForge.EVENT_BUS.addListener(MagicParticlesLibClient::onLoggingOut);
         NeoForge.EVENT_BUS.addListener(SpawnElectricArcClientCommand::onClientTick);
         NeoForge.EVENT_BUS.addListener(SpawnLightningClientCommand::onClientTick);
         container.registerExtensionPoint(IConfigScreenFactory.class, ConfigurationScreen::new);
@@ -54,12 +62,24 @@ public class MagicParticlesLibClient {
         RenderTypeRegistry.register(event);
     }
 
+    private static void onLevelUnload(LevelEvent.Unload event) {
+        // The event is posted for server levels too, e.g. in singleplayer, so only client levels matter here.
+        if (event.getLevel().isClientSide()) {
+            EssentiaStreamParticleProvider.clearLiveStreams();
+        }
+    }
+
+    private static void onLoggingOut(ClientPlayerNetworkEvent.LoggingOut event) {
+        EssentiaStreamParticleProvider.clearLiveStreams();
+    }
+
     private static void registerClientCommands(RegisterClientCommandsEvent event) {
         SpawnElectricArcClientCommand.register(event.getDispatcher());
         SpawnLightningClientCommand.register(event.getDispatcher());
         SpawnGlowTrailProjectileClientCommand.register(event.getDispatcher());
         SpawnNitorClientCommand.register(event.getDispatcher());
         SpawnAuraNodeClientCommand.register(event.getDispatcher());
+        SpawnEssentiaStreamClientCommand.register(event.getDispatcher());
     }
 
     private static void registerEntityRenderers(EntityRenderersEvent.RegisterRenderers event) {
@@ -74,6 +94,8 @@ public class MagicParticlesLibClient {
         event.registerSpecial(ParticleTypeRegistry.LIGHTNING.get(), new LightningParticleProvider());
         event.registerSpriteSet(ParticleTypeRegistry.NITOR.get(), NitorParticleProvider::new);
         event.registerSpecial(ParticleTypeRegistry.AURA_NODE.get(), new AuraNodeParticleProvider());
+        event.registerSpecial(ParticleTypeRegistry.ESSENTIA_STREAM.get(), new EssentiaStreamParticleProvider());
+        event.registerSpriteSet(ParticleTypeRegistry.BUBBLE.get(), BubbleParticleProvider::new);
     }
 
     private static void registerParticleGroups(RegisterParticleGroupsEvent event) {
@@ -81,5 +103,6 @@ public class MagicParticlesLibClient {
         event.register(RenderTypeRegistry.LIGHTNING_GROUP, LightningParticleGroup::new);
         event.register(RenderTypeRegistry.NITOR_GROUP, NitorParticleGroup::new);
         event.register(RenderTypeRegistry.AURA_NODE_GROUP, AuraNodeParticleGroup::new);
+        event.register(RenderTypeRegistry.ESSENTIA_STREAM_GROUP, EssentiaStreamParticleGroup::new);
     }
 }

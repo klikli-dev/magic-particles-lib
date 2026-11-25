@@ -22,9 +22,9 @@ public record StreamPort(Vec3 anchor, Vec3 clearance) {
     // Nozzles sit just outside the face, and clear it by a larger distance.
     private static final double NOZZLE_ANCHOR_OFFSET = 0.55D;
     private static final double NOZZLE_CLEARANCE_OFFSET = 1.15D;
-    // Panes (mirrors, flat faces) are anchored on the face itself, and clear it by a smaller distance.
-    private static final double PANE_ANCHOR_OFFSET = 0.5D;
-    private static final double PANE_CLEARANCE_OFFSET = 0.8D;
+    // Panes (mirrors, flat faces) are anchored just in front of the face, and clear it by a smaller distance.
+    private static final double PANE_ANCHOR_OFFSET = 0.64D;
+    private static final double PANE_CLEARANCE_OFFSET = 1.28D;
 
     /**
      * Creates a port from an anchor and a clearance point.
@@ -44,7 +44,8 @@ public record StreamPort(Vec3 anchor, Vec3 clearance) {
     }
 
     /**
-     * A flat pane such as a mirror on a block face: the anchor is on the face, and the clearance is 0.3 blocks outside it.
+     * A flat pane such as a mirror on a block face: the anchor is 0.14 blocks in front of the face, and the clearance is
+     * 0.78 blocks in front of the face.
      *
      * @param pos    the block the pane is on
      * @param facing the face the pane is on, pointing out of the block

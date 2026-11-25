@@ -95,7 +95,7 @@ Use `EssentiaStreamParticleOptions.of(from, to, color)` and its overloads `of(fr
 A `StreamPort` is a point where a stream leaves or enters a block through one of its faces. It has an `anchor` (where the stream starts or ends) and a `clearance` point further out along the face's normal.
 
 - `StreamPort.nozzle(BlockPos pos, Direction facing)`: the anchor is 0.05 blocks outside the face, and the clearance is 0.65 blocks further out. Use it for jars, pipes and anything that spouts.
-- `StreamPort.pane(BlockPos pos, Direction facing)`: the anchor is on the face, and the clearance is 0.3 blocks outside it. Use it for mirrors and flat faces.
+- `StreamPort.pane(BlockPos pos, Direction facing)`: the anchor is 0.14 blocks in front of the face (the block centre plus `facing × 0.64`), and the clearance is 0.78 blocks in front of the face (`facing × 1.28`). Use it for mirrors and flat faces.
 - `StreamPort.of(Vec3 anchor, Vec3 clearance)`: any other point.
 
 An **exit** starts the stream at its anchor and launches it toward its clearance point, which becomes the first waypoint. An **entry** makes the clearance point the last waypoint and the anchor the destination, so the stream dives straight in through the face.

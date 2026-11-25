@@ -23,93 +23,69 @@ import java.util.List;
 /**
  * Turns the stream's render samples into a tube mesh.
  * <p>
- * Samples are ordered head first, tail last. All tapers, wobble and phases are measured in blocks of arc length from the
- * head or the back end, so they do not depend on how many samples the stream has.
+ * Every sample knows when it was laid ({@code birth}, in ticks). Its age in ticks, {@code slot = time - birth}, is what the
+ * ripple, wobble and shimmer are indexed by. Samples that were laid while the head was slow are close together, so the
+ * patterns bunch there, and fast segments stretch them.
  */
 final class EssentiaStreamMeshBuilder {
     // Eight sides is round enough for a liquid tube at this size while keeping the vertex count low.
     private static final int TUBE_SEGMENTS = 8;
     private static final Contour2D TUBE_CONTOUR = Contour2D.circle(1.0D, TUBE_SEGMENTS);
-    // Texture repeats per trail point (about 0.1 blocks), so repeats per block is derived from the sample spacing.
-    private static final double TEXTURE_REPEATS_PER_POINT = 0.075D;
-    // Package-private so the particle can scale the dissolve scroll by the drain speed.
-    static final double TEXTURE_REPEATS_PER_BLOCK = TEXTURE_REPEATS_PER_POINT / EssentiaStreamParticle.TRAIL_POINT_SPACING;
-    // Head tip swells from zero radius over this distance, in blocks.
-    private static final double TIP_LENGTH = 0.35D;
-    // Tail end tapers to zero over this distance once the back end is free of the source.
-    private static final double TAIL_LENGTH = 1.0D;
-    // While the back end is anchored at the source, the tail tapers over this shorter distance so the tube emerges from the source.
-    private static final double ANCHORED_TAIL_LENGTH = 0.3D;
-    // Wobble fades in over this distance from the back end, so it is zero at an anchored source.
-    private static final double WOBBLE_FADE_LENGTH = 0.5D;
-    // Body thickness breathing: slow, large pulse over the whole stream.
-    private static final float PULSE_DEPTH = 0.25F;
-    private static final float PULSE_RATE = 0.12F;
-    // Thickness ripple that travels along the body, so it reads as flowing liquid. Wave number is in radians per block.
-    private static final float RIPPLE_DEPTH = 0.2F;
-    private static final float RIPPLE_RATE = 0.35F;
-    private static final float RIPPLE_WAVE_NUMBER = 6.0F;
-    // Brightness shimmer that travels along the tube. Wave number is in radians per block.
-    private static final float SHIMMER_DEPTH = 0.1F;
-    private static final float SHIMMER_RATE = 0.2F;
-    private static final float SHIMMER_WAVE_NUMBER = 3.0F;
-    // Shimmering centre-line wobble, in blocks per axis, with a different rate per axis.
+    // Texture repeats per tick of travel. The path-length texture scale is derived from this and the cruise speed.
+    static final double TEXTURE_REPEATS_PER_TICK = 0.075D;
+    // Head: the first ticks are radius zero, then the radius blends up to the full body over a few samples.
+    private static final double HEAD_ZERO_TICKS = 1.0D;
+    private static final double HEAD_FULL_TICKS = 5.0D;
+    // Tail: the samples within this many ticks of the back end taper with a cosine.
+    private static final double TAIL_TICKS = 10.0D;
+    // Ripple: radius varies by this fraction, one wave every 3 ticks of phase.
+    private static final double RIPPLE_DEPTH = 0.2D;
+    private static final double RIPPLE_DIVISOR = 3.0D;
+    // Shimmer only darkens: brightness dips by this fraction, one wave every 2 ticks of phase.
+    private static final double SHIMMER_DEPTH = 0.1D;
+    private static final double SHIMMER_DIVISOR = 2.0D;
+    // Centre-line wobble, in blocks, with a different period per axis.
     static final double WOBBLE_AMPLITUDE = 0.03D;
-    private static final double WOBBLE_RATE_X = 0.31D;
-    private static final double WOBBLE_RATE_Y = 0.23D;
-    private static final double WOBBLE_RATE_Z = 0.37D;
-    // Wobble phase advances by this many radians per block along the stream.
-    private static final double WOBBLE_PHASE_PER_BLOCK = 4.0D;
+    private static final double WOBBLE_DIVISOR_X = 6.0D;
+    private static final double WOBBLE_DIVISOR_Y = 7.0D;
+    private static final double WOBBLE_DIVISOR_Z = 8.0D;
     private static final int OPAQUE = 255;
 
-    // Initialised after the constants above, since it reads them.
-    private static final ExtrusionOptions OPTIONS = options(0.0D);
-
     private EssentiaStreamMeshBuilder() {
+    }
+
+    /**
+     * The texture repeats per block of path for a stream with the given cruise speed, so that the texture moves 0.075
+     * repeats per tick of travel.
+     */
+    static double repeatsPerBlock(double cruisePerTick) {
+        return TEXTURE_REPEATS_PER_TICK / cruisePerTick;
     }
 
     /**
      * Extrudes the stream.
      * <p>
      * Positions are relative to origin, so the float vertices stay small; the caller translates the pose by origin - camera.
-     * textureOffset is the dissolve scroll in texture repeats. It is 0 while the stream is growing or holding, and while
-     * draining it grows with the distance the back end has moved.
+     * {@code time} is the stream's age in ticks including the partial tick, and {@code back} is the birth time of the back end.
+     * textureOffset is the dissolve scroll in texture repeats. It is 0 while the stream is flying.
      */
-    static ExtrusionMesh build(List<EssentiaStreamParticle.TrailSample> samples, Vec3 origin, float baseRadius, int rgbColor, float time, float phase, float textureOffset) {
-        int count = samples.size();
-        double frontArc = samples.get(0).arc();
-        double backArc = samples.get(count - 1).arc();
-        double tailLength = tailTaperLength(backArc);
-        // If the stream is shorter than the tapers, scale both down so the radii stay sensible.
-        double length = Math.max(0.0D, frontArc - backArc);
-        double taperTotal = TIP_LENGTH + tailLength;
-        double taperScale = Math.min(1.0D, length / taperTotal);
-        double tip = TIP_LENGTH * taperScale;
-        double tail = tailLength * taperScale;
-
-        ArrayList<PathPoint> points = new ArrayList<>(count);
+    static ExtrusionMesh build(List<EssentiaStreamParticle.TrailSample> samples, Vec3 origin, double time, double back, int rgbColor, double repeatsPerBlock, double textureOffset) {
+        ArrayList<PathPoint> points = new ArrayList<>(samples.size());
         for (EssentiaStreamParticle.TrailSample sample : samples) {
-            double fromFront = Math.max(0.0D, frontArc - sample.arc());
-            double fromBack = Math.max(0.0D, sample.arc() - backArc);
-            Vec3 position = wobble(sample.position().subtract(origin), time, phase, fromFront, fromBack);
-            float radius = radius(baseRadius, time, phase, fromFront, fromBack, tip, tail, sample.arrival());
+            double slot = Math.max(0.0D, time - sample.birth());
+            double phase = slot + time;
+            Vec3 position = wobble(sample.position().subtract(origin), phase);
+            float radius = radius(sample, slot, phase, back);
             points.add(PathPoint.of(position)
-                    .withColor(shimmer(rgbColor, time, phase, fromFront))
+                    .withColor(shimmer(rgbColor, phase))
                     .withContourTransform(AffineTransform2D.scale(radius, radius)));
         }
 
-        ExtrusionOptions options = textureOffset != 0.0F ? options(textureOffset) : OPTIONS;
-        return Extrusion.engine().extrude(TUBE_CONTOUR, points, options);
+        return Extrusion.engine().extrude(TUBE_CONTOUR, points, options(repeatsPerBlock, textureOffset));
     }
 
-    // Tail taper eases from the anchored length to the free length as the back end moves away from the source.
-    private static double tailTaperLength(double backArc) {
-        double freedom = Math.min(1.0D, backArc / TAIL_LENGTH);
-        return ANCHORED_TAIL_LENGTH + (TAIL_LENGTH - ANCHORED_TAIL_LENGTH) * freedom;
-    }
-
-    private static ExtrusionOptions options(double textureOffset) {
-        // Zero-radius tips close the tube by themselves, so caps stay off.
+    private static ExtrusionOptions options(double repeatsPerBlock, double textureOffset) {
+        // Zero-radius ends close the tube by themselves, so caps stay off.
         // PATH_EDGE normals are enough because the stream is fullbright.
         // VERTEX_CYLINDER maps U around the tube and V along the stream, head first.
         return Extrusion.options()
@@ -118,40 +94,67 @@ final class EssentiaStreamMeshBuilder {
                 .capEnds(false)
                 .textureMode(TextureCoordinateMode.VERTEX_CYLINDER)
                 .tubeSegments(TUBE_SEGMENTS)
-                .textureLengthScale(TEXTURE_REPEATS_PER_BLOCK)
+                .textureLengthScale(repeatsPerBlock)
                 .textureLengthOffset(textureOffset)
                 .build();
     }
 
-    private static Vec3 wobble(Vec3 position, float time, float phase, double fromFront, double fromBack) {
-        double fade = Math.min(1.0D, fromBack / WOBBLE_FADE_LENGTH);
-        double shift = phase + fromFront * WOBBLE_PHASE_PER_BLOCK;
-        double amplitude = WOBBLE_AMPLITUDE * fade;
+    private static Vec3 wobble(Vec3 position, double phase) {
         return new Vec3(
-                position.x + amplitude * Mth.sin(time * WOBBLE_RATE_X + shift),
-                position.y + amplitude * Mth.sin(time * WOBBLE_RATE_Y + shift * 1.3D),
-                position.z + amplitude * Mth.sin(time * WOBBLE_RATE_Z + shift * 0.7D)
+                position.x + WOBBLE_AMPLITUDE * Math.sin(phase / WOBBLE_DIVISOR_X),
+                position.y + WOBBLE_AMPLITUDE * Math.sin(phase / WOBBLE_DIVISOR_Y),
+                position.z + WOBBLE_AMPLITUDE * Math.sin(phase / WOBBLE_DIVISOR_Z)
         );
     }
 
-    private static float radius(float baseRadius, float time, float phase, double fromFront, double fromBack, double tip, double tail, float arrival) {
-        float tipSwell = tip > 0.0D ? Mth.sin(Math.min(1.0D, fromFront / tip) * Mth.HALF_PI) : 0.0F;
-        float tailSwell = tail > 0.0D ? Mth.sin(Math.min(1.0D, fromBack / tail) * Mth.HALF_PI) : 0.0F;
-        float pulse = 1.0F + PULSE_DEPTH * Mth.sin(time * PULSE_RATE + phase);
-        float ripple = 1.0F + RIPPLE_DEPTH * Mth.sin((float) fromFront * RIPPLE_WAVE_NUMBER - time * RIPPLE_RATE + phase);
+    private static float radius(EssentiaStreamParticle.TrailSample sample, double slot, double phase, double back) {
+        double ripple = 1.0D + RIPPLE_DEPTH * Math.sin(phase / RIPPLE_DIVISOR);
+        double raw = sample.radius() * ripple;
+        double taper = tailTaper(sample.birth() - back);
         // Clamped so no combination of terms can produce a negative radius.
-        return Math.max(0.0F, baseRadius * pulse * ripple * tipSwell * tailSwell * arrival);
+        return (float) Math.max(0.0D, headCap(slot, sample.base(), raw) * taper);
     }
 
-    private static int shimmer(int rgbColor, float time, float phase, double fromFront) {
-        float brightness = 1.0F + SHIMMER_DEPTH * Mth.sin(time * SHIMMER_RATE - (float) fromFront * SHIMMER_WAVE_NUMBER + phase);
+    // Head cap: zero for the first ticks, then a piecewise-linear blend from zero up to the raw radius.
+    // The blend uses the unpulsed base for its base part, so a thinned stream stays thin at its head.
+    private static double headCap(double slot, double base, double raw) {
+        if (slot <= HEAD_ZERO_TICKS) {
+            return 0.0D;
+        }
+        if (slot >= HEAD_FULL_TICKS) {
+            return raw;
+        }
+        double at2 = 0.25D * base + 0.5D * raw;
+        double at3 = 0.5D * base + 0.5D * raw;
+        double at4 = (base + 2.0D * raw) / 3.0D;
+        if (slot < 2.0D) {
+            return Mth.lerp(slot - HEAD_ZERO_TICKS, 0.0D, at2);
+        }
+        if (slot < 3.0D) {
+            return Mth.lerp(slot - 2.0D, at2, at3);
+        }
+        if (slot < 4.0D) {
+            return Mth.lerp(slot - 3.0D, at3, at4);
+        }
+        return Mth.lerp(slot - 4.0D, at4, raw);
+    }
+
+    // Cosine taper from zero at the back end to one, over TAIL_TICKS of the body.
+    private static double tailTaper(double ticksFromBack) {
+        double fraction = Mth.clamp(ticksFromBack / TAIL_TICKS, 0.0D, 1.0D);
+        return 0.5D - 0.5D * Math.cos(Math.PI * fraction);
+    }
+
+    private static int shimmer(int rgbColor, double phase) {
+        // Only darkens: the brightness is capped at the base colour.
+        double brightness = Math.min(1.0D, 1.0D - SHIMMER_DEPTH * Math.sin(phase / SHIMMER_DIVISOR));
         return ARGB.color(OPAQUE,
                 channel(ARGB.red(rgbColor) * brightness),
                 channel(ARGB.green(rgbColor) * brightness),
                 channel(ARGB.blue(rgbColor) * brightness));
     }
 
-    private static int channel(float value) {
+    private static int channel(double value) {
         return Mth.clamp(Mth.floor(value), 0, OPAQUE);
     }
 }

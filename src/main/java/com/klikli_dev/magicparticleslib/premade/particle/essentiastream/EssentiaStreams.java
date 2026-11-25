@@ -18,7 +18,7 @@ public final class EssentiaStreams {
     }
 
     /**
-     * Spawns a stream with the default radius and no extension.
+     * Spawns a stream with the default radius, length and speed.
      *
      * @param level the client level to spawn in
      * @param from  start of the stream
@@ -30,34 +30,47 @@ public final class EssentiaStreams {
     }
 
     /**
-     * Spawns a stream with a custom radius, hold and maximum length.
+     * Spawns a stream with a custom radius, extension and length.
      *
-     * @param level     the client level to spawn in
-     * @param from      start of the stream
-     * @param to        destination the stream drains into
-     * @param color     packed RGB color
-     * @param radius    body radius in blocks
-     * @param extend    hold ticks at the destination after the head arrives
-     * @param maxLength maximum stream length in blocks before the tail follows the head as a comet
+     * @param level  the client level to spawn in
+     * @param from   start of the stream
+     * @param to     destination the stream drains into
+     * @param color  packed RGB color
+     * @param radius body radius in blocks
+     * @param extend extra body ticks at creation (see {@link EssentiaStreamParticleOptions#extend()})
+     * @param length body length in ticks of travel
      */
-    public static void spawn(ClientLevel level, Vec3 from, Vec3 to, int color, float radius, int extend, float maxLength) {
-        spawn(level, EssentiaStreamParticleOptions.of(from, to, color, radius, extend, maxLength));
+    public static void spawn(ClientLevel level, Vec3 from, Vec3 to, int color, float radius, int extend, int length) {
+        spawn(level, EssentiaStreamParticleOptions.of(from, to, color, radius, extend, length));
     }
 
     /**
-     * Spawns a stream with a custom radius, hold, maximum length and speed.
+     * Spawns a stream with a custom radius, extension, length and speed.
      *
-     * @param level     the client level to spawn in
-     * @param from      start of the stream
-     * @param to        destination the stream drains into
-     * @param color     packed RGB color
-     * @param radius    body radius in blocks
-     * @param extend    hold ticks at the destination after the head arrives
-     * @param maxLength maximum stream length in blocks before the tail follows the head as a comet
-     * @param speed     head speed in blocks per second, clamped to the options' range
+     * @param level  the client level to spawn in
+     * @param from   start of the stream
+     * @param to     destination the stream drains into
+     * @param color  packed RGB color
+     * @param radius body radius in blocks
+     * @param extend extra body ticks at creation (see {@link EssentiaStreamParticleOptions#extend()})
+     * @param length body length in ticks of travel
+     * @param speed  head speed in blocks per second, clamped to the options' range
      */
-    public static void spawn(ClientLevel level, Vec3 from, Vec3 to, int color, float radius, int extend, float maxLength, float speed) {
-        spawn(level, EssentiaStreamParticleOptions.of(from, to, color, radius, extend, maxLength, speed));
+    public static void spawn(ClientLevel level, Vec3 from, Vec3 to, int color, float radius, int extend, int length, float speed) {
+        spawn(level, EssentiaStreamParticleOptions.of(from, to, color, radius, extend, length, speed));
+    }
+
+    /**
+     * Spawns a stream between two block ports: it leaves {@code exit} and dives into {@code entry}.
+     * Use {@link EssentiaStreamParticleOptions#builder(int)} for waypoints or other options.
+     *
+     * @param level the client level to spawn in
+     * @param exit  where the stream leaves, see {@link StreamPort#nozzle} and {@link StreamPort#pane}
+     * @param entry where the stream enters
+     * @param color packed RGB color
+     */
+    public static void spawn(ClientLevel level, StreamPort exit, StreamPort entry, int color) {
+        spawn(level, EssentiaStreamParticleOptions.builder(color).exit(exit).entry(entry).build());
     }
 
     /**

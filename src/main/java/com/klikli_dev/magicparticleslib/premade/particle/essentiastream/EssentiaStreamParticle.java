@@ -5,12 +5,11 @@
 package com.klikli_dev.magicparticleslib.premade.particle.essentiastream;
 
 import com.klikli_dev.magicparticleslib.extrusion.ExtrusionMesh;
-import com.klikli_dev.magicparticleslib.premade.particle.glow.GlowParticleOptions;
+import com.klikli_dev.magicparticleslib.premade.particle.bubble.BubbleParticleOptions;
 import com.klikli_dev.magicparticleslib.registry.RenderTypeRegistry;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.Particle;
 import net.minecraft.client.particle.ParticleRenderType;
-import net.minecraft.util.ARGB;
 import net.minecraft.util.LightCoordsUtil;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
@@ -24,59 +23,56 @@ import java.util.Deque;
 import java.util.List;
 
 /**
- * A stream of essentia that grows from its source toward its destination, then drains into it.
+ * A worm-shaped stream of essentia that flies from its source to its destination, then drains into it.
  * <p>
- * The stream is the part of the head's path between a back arc and the head. The head moves along the route at
- * about one block per second and its path is sampled every {@link #TRAIL_POINT_SPACING} blocks of arc length.
+ * The head moves one step per tick, and it leaves a sample on its path about every {@link #TRAIL_POINT_SPACING} blocks.
+ * Each sample records the tick it was laid. The body is the part of the path the head flew in the last {@code length}
+ * ticks, so its length is measured in time, not in blocks. The back end then trails the head by that many ticks.
  * <ul>
- *     <li><b>Grow:</b> the back is anchored at the source, so the stream is a continuous tube from the source to the head.</li>
- *     <li><b>Comet:</b> once the stream reaches {@code maxLength}, the back moves with the head, so the stream keeps that length.</li>
- *     <li><b>Hold:</b> after the head arrives, the stream stays connected for the hold ticks, which {@code extend} sets.</li>
- *     <li><b>Drain:</b> the back then moves toward the destination at a constant speed until nothing is left.</li>
+ *     <li><b>Fly:</b> the head accelerates toward its waypoint, with the speed clamped per axis, so diagonal motion is
+ *     allowed to be a little faster than the axes. Each tick it lays samples and the body follows at {@code length} ticks.</li>
+ *     <li><b>Arrive:</b> on the final leg the radius of newly laid samples thins to nothing, and the head snaps onto the destination.</li>
+ *     <li><b>Drain:</b> once arrived, the back end retracts one tick of body per tick, so the stream empties into the destination.</li>
  * </ul>
  */
 public class EssentiaStreamParticle extends Particle {
-    private static final double TICKS_PER_SECOND = 20.0D;
-    // The steering, slow-down, bias and launch constants below were tuned at this speed. Distances and rates scale with
-    // the stream's speed relative to it, so the approach keeps its shape in blocks and only gets faster.
-    private static final double TUNING_SPEED_BLOCKS_PER_SECOND = 1.0D;
+    // Per-tick velocity damping, which keeps the path soft.
+    private static final double DAMPING = 0.985D;
+    // Steering pull toward the waypoint, as a fraction of cruise speed per tick.
+    private static final double PULL_FACTOR = 0.2D;
+    // Smallest and largest distance used when scaling the pull, so near targets are snapped into hard.
+    private static final double STEER_MIN_DISTANCE = 0.05D;
+    private static final double STEER_MAX_DISTANCE = 1.0D;
+    // Constant upward push per tick, as a fraction of cruise speed, so flights bulge slightly upward.
+    private static final double RISE_FACTOR = 0.04D;
+    // Launch speed without a direction, as a fraction of cruise speed, with the axis components set by the seed.
+    private static final double LAUNCH_SPEED_FACTOR = 0.3D;
+    // Launch wobble with a direction, as a fraction of cruise speed.
+    private static final double LAUNCH_WOBBLE_FACTOR = 0.1D;
     // Sampled points on the head's path are this far apart in arc length, in blocks.
     static final double TRAIL_POINT_SPACING = 0.1D;
-
-    // Merging adds at least this many hold ticks.
-    static final int MERGE_MIN_HOLD_TICKS = 5;
-    // A merge into a draining stream is only allowed while at least this many sample points remain.
-    static final int MIN_MERGE_REMAINING_POINTS = 3;
-    // Launch speed when no launch direction is given, as a fraction of cruise speed.
-    private static final double RANDOM_LAUNCH_SPEED_FACTOR = 0.5D;
-    // Fraction of the velocity error corrected per tick: gentle far away, firm when close, so the head homes in without much overshoot.
-    private static final double STEER_FAR = 0.03D;
-    private static final double STEER_NEAR = 0.25D;
-    private static final double STEER_NEAR_DISTANCE = 2.0D;
-    // Per-tick velocity damping, which keeps the path soft.
-    private static final double VELOCITY_DAMPING = 0.97D;
-    // Small constant upward acceleration per tick, so flights bulge slightly upward.
-    private static final double UPWARD_BIAS = 0.0004D;
-    // On the final leg, head speed ramps down over this distance so the head doesn't overshoot the destination.
-    private static final double SLOW_DISTANCE = 0.6D;
-    private static final double SLOW_MIN_FACTOR = 0.15D;
     // Distance at which an intermediate waypoint counts as reached.
     private static final double WAYPOINT_REACH_DISTANCE = 0.4D;
-    // Within this distance of the destination the head radius shrinks smoothly to zero.
-    private static final double ARRIVE_BLEND_DISTANCE = 1.0D;
     // The head counts as arrived within this distance, and it is snapped onto the destination.
     private static final double ARRIVE_STOP_DISTANCE = 0.05D;
+    // Within this distance of the destination, newly laid samples thin by sin(distance * pi / 2) per tick.
+    private static final double ARRIVE_BLEND_DISTANCE = 1.0D;
+    // Radius pulse per sample: radius * (0.75 + 0.25 * sin((seed + birth) / 2)), frozen when the sample is laid.
+    private static final double PULSE_MIN = 0.75D;
+    private static final double PULSE_RANGE = 0.25D;
+    private static final double PULSE_DIVISOR = 2.0D;
+    // Merging adds at least this many ticks.
+    static final int MERGE_MIN_TICKS = 5;
+    // A merge into a draining stream is only allowed while at least this many ticks of body remain.
+    private static final double MIN_MERGE_REMAINING_TICKS = 3.0D;
     // Points closer than this to the live head are not drawn separately, to avoid degenerate segments at the tip.
-    // Also used for the back end when it is about to vanish.
     private static final double MIN_HEAD_SEPARATION = 0.02D;
-    // The launch hop decays by this factor per tick. Total hop height is the boost divided by (1 - decay).
-    private static final double HOP_DECAY = 0.8D;
-    // Lifetime safety net: flight time at cruise speed, plus hold, drain and a margin.
-    // Simulated arrivals took up to about 2.9 times the ideal cruise time: launches pointing away from the target need
-    // to turn, and the final approach is slow. The slack covers that, and the margin covers short routes.
+    // The back end is not placed this close, in ticks, to the sample ahead of it, to avoid degenerate segments.
+    private static final double MIN_BACK_SEPARATION_TICKS = 0.01D;
+    // Lifetime safety net: flight time at cruise speed, times a slack for steering, plus the body and a margin.
     // The lifetime only has to be generous: a stream that has drained is removed anyway.
     private static final double LIFETIME_FLIGHT_SLACK = 4.0D;
-    private static final int LIFETIME_MARGIN_TICKS = 40;
+    private static final int LIFETIME_MARGIN_TICKS = 100;
     private static final int MIN_LIFETIME_TICKS = 40;
     // Streams with fewer render points are not drawn yet.
     private static final int MIN_RENDER_POINTS = 3;
@@ -85,18 +81,17 @@ public class EssentiaStreamParticle extends Particle {
     private static final double RADIUS_VARIATION_LIMIT = 0.3D;
     // Extra bounds padding for curve bulge and other drift the mesh might reach beyond its route.
     private static final double BOUNDS_MARGIN = 2.0D;
-    // Droplets: chance per tick while flying, lifetime in ticks, size and alpha.
+    // Droplets: chance per tick while flying, and their lifetime in ticks.
     private static final float DROPLET_CHANCE = 0.5F;
     private static final int DROPLET_MIN_AGE = 20;
-    private static final int DROPLET_MAX_AGE = 30;
-    private static final float DROPLET_MIN_SIZE = 0.05F;
-    private static final float DROPLET_SIZE_RANGE = 0.06F;
-    private static final int DROPLET_ALPHA = 128;
-    private static final double DROPLET_DRIFT = 0.01D;
-    private static final double DROPLET_BUOYANCY = 0.004D;
-    // Droplets spawned while draining start near the destination and are pulled gently into it.
-    private static final double DISSOLVE_SPREAD = 0.08D;
-    private static final double DISSOLVE_PULL = 0.1D;
+    private static final int DROPLET_MAX_AGE = 29;
+    // Droplet scale in tenths of a block: quads are scale times 0.1.
+    private static final float DROPLET_MIN_SCALE = 0.4F;
+    private static final float DROPLET_SCALE_RANGE = 0.2F;
+    // Flying droplets drift with a gaussian velocity of this sigma, per axis.
+    private static final double DROPLET_DRIFT_SIGMA = 0.005D;
+    // Dissolve droplets appear around the destination with this gaussian offset, and then float up.
+    private static final double DISSOLVE_SPREAD_SIGMA = 0.075D;
 
     // Global switch for droplets, so callers can turn them off.
     private static volatile boolean dropletsEnabled = true;
@@ -105,32 +100,35 @@ public class EssentiaStreamParticle extends Particle {
     private final Vec3 origin;
     private final List<Vec3> route;
     private final int rgbColor;
+    private final int seed;
     private final float baseRadius;
-    private final float phase;
-    private final float maxLength;
-    // Head speed in blocks per tick, the speed relative to the tuning speed, and the drain speed in blocks per tick.
+    // Head speed in blocks per tick, and the per-axis velocity limit (the upward limit also covers the launch boost).
     private final double cruiseSpeed;
-    private final double speedScale;
-    private final double drainBlocksPerTick;
-    // Committed path samples at every TRAIL_POINT_SPACING of arc length, newest (head side) first.
+    private final double verticalLimit;
+    // Texture repeats per block of path, derived from cruise speed so the texture moves 0.075 repeats per tick.
+    private final double repeatsPerBlock;
+    // Committed path samples, newest (head side) first.
     private final Deque<TrailSample> trail = new ArrayDeque<>();
     // Reused every frame to hold the render snapshot.
     private final ArrayList<TrailSample> snapshotBuffer = new ArrayList<>();
-    private TrailSample previousHead;
     private TrailSample head;
-    private double previousBackArc;
-    // Arc length of the back end. 0 while anchored at the source. Only ever increases.
-    private double backArc;
-    // Arc length at which the next committed sample is placed.
-    private double nextCommitArc;
-    private Vec3 velocity;
-    private Vec3 hop;
-    private int routeIndex = 1;
-    private boolean arrived;
-    // Ticks left to stay connected at the destination before draining. Merges add to it.
-    private int holdRemaining;
+    private TrailSample previousHead;
+    // Arc length at which the next sample is laid.
+    private double nextCommitArc = TRAIL_POINT_SPACING;
+    // Birth time of the back end, in ticks. Samples older than this are not drawn. Only ever increases.
+    private double cutTime;
+    private double previousCutTime;
+    // Base radius of samples laid from now on. It thins on the final leg and is zero once the stream has arrived.
+    private double thinning;
+    // Body length in ticks. Starts at max(length, extend) and grows with merges.
+    private double bodyTicks;
+    // Ticks a merge added while draining, during which the back end does not retract.
+    private int extraDrainTicks;
     // Number of drain ticks so far. Drives the texture scroll.
     private int dissolveTicks;
+    private Vec3 velocity;
+    private int routeIndex = 1;
+    private boolean arrived;
 
     public EssentiaStreamParticle(ClientLevel level, EssentiaStreamParticleOptions options) {
         // Zero motion: the stream is simulated by this class, not by the vanilla particle physics.
@@ -139,22 +137,19 @@ public class EssentiaStreamParticle extends Particle {
         this.origin = options.from();
         this.route = buildRoute(options.from(), options.waypoints(), options.to());
         this.rgbColor = options.color();
-        this.maxLength = options.maxLength();
-        this.cruiseSpeed = options.speed() / TICKS_PER_SECOND;
-        this.speedScale = options.speed() / TUNING_SPEED_BLOCKS_PER_SECOND;
-        // The back end retracts at the head's speed, so the tail visibly leaves the source at the same pace as the head moved away.
-        this.drainBlocksPerTick = this.cruiseSpeed;
+        this.seed = options.seed();
+        this.cruiseSpeed = options.speed() / EssentiaStreamParticleOptions.TICKS_PER_SECOND;
+        this.repeatsPerBlock = EssentiaStreamMeshBuilder.repeatsPerBlock(this.cruiseSpeed);
+        double boostPerTick = options.verticalBoost() / EssentiaStreamParticleOptions.TICKS_PER_SECOND;
+        this.verticalLimit = Math.max(this.cruiseSpeed, Math.abs(boostPerTick));
 
         // Everything random about this stream comes from its seed, so the same options look the same.
         RandomSource streamRandom = RandomSource.create(options.seed());
-        this.phase = streamRandom.nextFloat() * Mth.TWO_PI;
         double variation = Mth.clamp(streamRandom.nextGaussian() * RADIUS_VARIATION_SIGMA, -RADIUS_VARIATION_LIMIT, RADIUS_VARIATION_LIMIT);
         this.baseRadius = (float) (options.radius() * (1.0D + variation));
-
-        this.hop = new Vec3(0.0D, options.verticalBoost() / TICKS_PER_SECOND, 0.0D);
-        this.velocity = options.launchDirection()
-                .map(direction -> direction.normalize().scale(this.cruiseSpeed))
-                .orElseGet(() -> randomDirection(streamRandom).scale(this.cruiseSpeed * RANDOM_LAUNCH_SPEED_FACTOR));
+        this.thinning = this.baseRadius;
+        this.bodyTicks = Math.max(options.length(), options.extend());
+        this.velocity = launchVelocity(options, streamRandom, this.cruiseSpeed, boostPerTick);
 
         // Vanilla particle physics must not move the stream.
         this.gravity = 0.0F;
@@ -164,15 +159,13 @@ public class EssentiaStreamParticle extends Particle {
         this.yd = 0.0D;
         this.zd = 0.0D;
 
-        // The head starts at the source at arc length 0. The source is committed so the trail always has an anchor.
-        this.head = new TrailSample(options.from(), 1.0F, 0.0D);
+        // The source is the first sample, so the body always has an anchor at the source.
+        this.head = this.sampleAt(options.from(), 0.0D, 0.0D);
         this.previousHead = this.head;
-        this.backArc = 0.0D;
-        this.previousBackArc = 0.0D;
-        this.nextCommitArc = TRAIL_POINT_SPACING;
         this.trail.addFirst(this.head);
-        this.holdRemaining = options.extend();
-        this.lifetime = computeLifetime(this.route, this.holdRemaining, this.maxLength, this.cruiseSpeed, this.drainBlocksPerTick);
+        this.previousCutTime = 0.0D;
+        this.cutTime = 0.0D;
+        this.lifetime = computeLifetime(this.route, this.bodyTicks, this.cruiseSpeed);
         this.syncPosition();
         this.setBoundingBox(buildBounds(this.route, this.baseRadius, options.verticalBoost()));
     }
@@ -207,12 +200,11 @@ public class EssentiaStreamParticle extends Particle {
 
         this.age++;
         this.previousHead = this.head;
-        this.previousBackArc = this.backArc;
+        this.previousCutTime = this.cutTime;
         if (!this.arrived) {
             this.flyTowardsDestination();
-            this.trimTailToMaxLength();
-        } else if (this.holdRemaining > 0) {
-            this.holdRemaining--;
+            // The back end is at most bodyTicks behind the head. It never moves backward.
+            this.cutTime = Math.max(this.cutTime, this.age - this.bodyTicks);
         } else {
             this.drain();
         }
@@ -222,24 +214,27 @@ public class EssentiaStreamParticle extends Particle {
     /**
      * Whether a new spawn with the same endpoints and colour may merge into this stream instead of creating a new one.
      * <p>
-     * A flying stream always accepts a merge. A draining stream only accepts one while enough of it remains.
+     * A flying stream always accepts a merge. A draining stream only accepts one while enough of its body remains.
      */
     boolean canAbsorb() {
         if (!this.isAlive()) {
             return false;
         }
-        return !this.arrived || this.remainingLength() >= MIN_MERGE_REMAINING_POINTS * TRAIL_POINT_SPACING;
+        return !this.arrived || this.remainingBodyTicks() >= MIN_MERGE_REMAINING_TICKS;
     }
 
     /**
-     * Merges a spawn into this stream: the hold grows by max(extendTicks, {@link #MERGE_MIN_HOLD_TICKS}) ticks,
-     * and the lifetime grows by the same amount so the stream is never cut early.
-     * While draining, the drain pauses for the added hold.
+     * Merges a spawn into this stream: the body grows by max(extendTicks, {@link #MERGE_MIN_TICKS}) ticks, and the
+     * lifetime grows by the same amount so the stream is never cut early. A draining stream keeps its back end still
+     * for that many ticks, so the added body is drained after the rest.
      */
     void absorb(int extendTicks) {
-        int grow = Math.max(extendTicks, MERGE_MIN_HOLD_TICKS);
-        this.holdRemaining += grow;
+        int grow = Math.max(extendTicks, MERGE_MIN_TICKS);
+        this.bodyTicks += grow;
         this.lifetime += grow;
+        if (this.arrived) {
+            this.extraDrainTicks += grow;
+        }
     }
 
     /**
@@ -259,11 +254,11 @@ public class EssentiaStreamParticle extends Particle {
             return null;
         }
 
-        float time = this.age + partialTickTime;
-        float dissolveTime = this.dissolveTicks > 0 ? this.dissolveTicks + partialTickTime : 0.0F;
-        // The texture only scrolls while draining, and by exactly the distance the back end has moved, so it matches the drain.
-        float textureOffset = (float) (dissolveTime * this.drainBlocksPerTick * EssentiaStreamMeshBuilder.TEXTURE_REPEATS_PER_BLOCK);
-        return EssentiaStreamMeshBuilder.build(samples, this.origin, this.baseRadius, this.rgbColor, time, this.phase, textureOffset);
+        double time = this.age + partialTickTime;
+        double back = Mth.lerp(partialTickTime, this.previousCutTime, this.cutTime);
+        // The texture only scrolls while draining, one drain tick at a time.
+        double textureOffset = this.dissolveTicks > 0 ? (this.dissolveTicks + partialTickTime) * EssentiaStreamMeshBuilder.TEXTURE_REPEATS_PER_TICK : 0.0D;
+        return EssentiaStreamMeshBuilder.build(samples, this.origin, time, back, this.rgbColor, this.repeatsPerBlock, textureOffset);
     }
 
     /**
@@ -277,7 +272,7 @@ public class EssentiaStreamParticle extends Particle {
         // Reuses one buffer per stream. The mesh builder reads it fully before renderData returns.
         this.snapshotBuffer.clear();
         TrailSample front = this.liveFront(partialTickTime);
-        double back = Mth.lerp(partialTickTime, this.previousBackArc, this.backArc);
+        double back = Mth.lerp(partialTickTime, this.previousCutTime, this.cutTime);
         this.snapshotBuffer.add(front);
 
         for (TrailSample sample : this.trail) {
@@ -286,7 +281,7 @@ public class EssentiaStreamParticle extends Particle {
                 continue;
             }
             // The first sample at or behind the back end is the one the back end is interpolated from.
-            if (sample.arc() <= back) {
+            if (sample.birth() <= back) {
                 this.addBackPoint(sample, back);
                 break;
             }
@@ -299,35 +294,42 @@ public class EssentiaStreamParticle extends Particle {
         return this.snapshotBuffer;
     }
 
-    // Places the back end at arc length x, interpolated on the path between sample (behind it) and the last point drawn.
+    // Places the back end at birth time x, interpolated between sample (behind it) and the last point drawn.
     private void addBackPoint(TrailSample sample, double x) {
         TrailSample last = this.snapshotBuffer.get(this.snapshotBuffer.size() - 1);
-        if (last.arc() - x < MIN_HEAD_SEPARATION) {
+        double span = last.birth() - sample.birth();
+        if (span <= 0.0D || last.birth() - x < MIN_BACK_SEPARATION_TICKS) {
             return;
         }
-        double fraction = (x - sample.arc()) / (last.arc() - sample.arc());
-        Vec3 position = Mth.lerp(fraction, sample.position(), last.position());
-        float arrival = Mth.lerp((float) fraction, sample.arrival(), last.arrival());
-        this.snapshotBuffer.add(new TrailSample(position, arrival, x));
+        double fraction = (x - sample.birth()) / span;
+        this.snapshotBuffer.add(new TrailSample(
+                Mth.lerp(fraction, sample.position(), last.position()),
+                Mth.lerp(fraction, sample.arc(), last.arc()),
+                x,
+                (float) Mth.lerp(fraction, sample.base(), last.base()),
+                (float) Mth.lerp(fraction, sample.radius(), last.radius())
+        ));
     }
 
     private TrailSample liveFront(float partialTickTime) {
         return new TrailSample(
                 Mth.lerp(partialTickTime, this.previousHead.position(), this.head.position()),
-                Mth.lerp(partialTickTime, this.previousHead.arrival(), this.head.arrival()),
-                Mth.lerp(partialTickTime, this.previousHead.arc(), this.head.arc())
+                Mth.lerp(partialTickTime, this.previousHead.arc(), this.head.arc()),
+                this.head.birth(),
+                this.head.base(),
+                this.head.radius()
         );
     }
 
-    private double remainingLength() {
-        return this.head.arc() - this.backArc;
+    private double remainingBodyTicks() {
+        return this.head.birth() - this.cutTime;
     }
 
     private void flyTowardsDestination() {
         Vec3 target = this.route.get(this.routeIndex);
         boolean finalLeg = this.isFinalLeg();
         // At high speed the head can move more than the reach distance in one tick, so the reach is at least two ticks of travel.
-        double waypointReach = Math.max(WAYPOINT_REACH_DISTANCE, 2.0D * this.cruiseSpeed);
+        double waypointReach = Math.max(WAYPOINT_REACH_DISTANCE, 2.0D * this.cruiseSpeed * Math.sqrt(3.0D));
         while (!finalLeg && this.head.position().distanceTo(target) < waypointReach) {
             this.routeIndex++;
             target = this.route.get(this.routeIndex);
@@ -342,73 +344,74 @@ public class EssentiaStreamParticle extends Particle {
             return;
         }
 
-        // The slow-down and steering distances scale with speed, and the upward bias does too. Both the
-        // approach and the bulge angle then keep the tuned shape, and do not overshoot more at higher speeds.
-        double desiredSpeed = this.cruiseSpeed;
-        if (finalLeg) {
-            desiredSpeed *= Mth.clamp(distance / (SLOW_DISTANCE * this.speedScale), SLOW_MIN_FACTOR, 1.0D);
-        }
-        // normalize() returns zero for a zero-length vector, so coincident points cannot produce NaNs here.
-        Vec3 desiredVelocity = toTarget.normalize().scale(desiredSpeed);
-        double steering = Mth.lerp(Mth.clamp(1.0D - distance / (STEER_NEAR_DISTANCE * this.speedScale), 0.0D, 1.0D), STEER_FAR, STEER_NEAR);
-        Vec3 steered = this.velocity.add(desiredVelocity.subtract(this.velocity).scale(steering));
-        Vec3 next = steered.scale(VELOCITY_DAMPING).add(0.0D, UPWARD_BIAS * this.speedScale, 0.0D);
-        double speed = next.length();
-        this.velocity = speed > this.cruiseSpeed ? next.scale(this.cruiseSpeed / speed) : next;
+        // Pull toward the waypoint. Its strength grows as the head gets close, so it snaps into targets rather than easing in.
+        double pull = PULL_FACTOR * this.cruiseSpeed / Mth.clamp(distance, STEER_MIN_DISTANCE, STEER_MAX_DISTANCE);
+        Vec3 acceleration = toTarget.normalize().scale(pull);
+        Vec3 next = this.velocity.add(acceleration).add(0.0D, RISE_FACTOR * this.cruiseSpeed, 0.0D).scale(DAMPING);
+        this.velocity = clampPerAxis(next, this.cruiseSpeed, this.verticalLimit);
 
-        Vec3 position = this.head.position().add(this.velocity).add(this.hop);
-        this.hop = this.hop.scale(HOP_DECAY);
-        float arrival = finalLeg ? arrivalRadiusFactor(distance) : 1.0F;
-        this.moveHead(position, arrival, finalLeg);
+        // On the final leg, newly laid samples thin out with the distance, compounding each tick.
+        if (finalLeg && distance < ARRIVE_BLEND_DISTANCE) {
+            this.thinning *= Math.sin(distance * Math.PI / 2.0D);
+        }
+
+        this.moveHead(this.head.position().add(this.velocity));
         this.emitFlightDroplet();
     }
 
     private void arrive() {
-        this.moveHead(this.destination, 0.0F, true);
-        // The tip is committed with zero radius, so the stream visibly plunges into the destination.
-        this.trail.addFirst(this.head);
+        // The stream is fully thinned on arrival, so the last samples are invisible and the drain starts.
+        this.thinning = 0.0D;
+        this.moveHead(this.destination);
         this.velocity = Vec3.ZERO;
-        this.hop = Vec3.ZERO;
         this.arrived = true;
     }
 
-    // Moves the head and commits samples at every arc-length multiple of the spacing that the move crossed.
-    // previousHead must already be the head from before this move (tick sets it).
-    private void moveHead(Vec3 position, float arrival, boolean finalLeg) {
-        double arc = this.head.arc() + this.head.position().distanceTo(position);
-        this.head = new TrailSample(position, arrival, arc);
+    // Moves the head and lays samples at every arc-length multiple of the spacing that the move crossed.
+    // Each sample's birth is the tick the head was at that point, so the body is measured in time.
+    private void moveHead(Vec3 position) {
+        TrailSample from = this.head;
+        double arc = from.arc() + from.position().distanceTo(position);
+        this.head = this.sampleAt(position, arc, this.age);
         this.syncPosition();
 
         // nextCommitArc is always greater than the previous head's arc, so the segment has positive length here.
-        double segmentLength = this.head.arc() - this.previousHead.arc();
+        double segmentLength = this.head.arc() - from.arc();
         while (this.nextCommitArc <= this.head.arc()) {
-            double fraction = (this.nextCommitArc - this.previousHead.arc()) / segmentLength;
-            Vec3 committed = Mth.lerp(fraction, this.previousHead.position(), this.head.position());
-            float committedArrival = finalLeg ? arrivalRadiusFactor(committed.distanceTo(this.destination)) : 1.0F;
-            this.trail.addFirst(new TrailSample(committed, committedArrival, this.nextCommitArc));
+            double fraction = (this.nextCommitArc - from.arc()) / segmentLength;
+            Vec3 committed = Mth.lerp(fraction, from.position(), this.head.position());
+            // The head was at "from" at the start of this tick, so the sample's birth is between the two ticks.
+            double birth = (this.age - 1) + fraction;
+            this.trail.addFirst(this.sampleAt(committed, this.nextCommitArc, birth));
             this.nextCommitArc += TRAIL_POINT_SPACING;
         }
     }
 
-    // Anchored while the stream is shorter than maxLength. Afterwards the back end follows the head at maxLength behind.
-    private void trimTailToMaxLength() {
-        this.backArc = Math.max(this.backArc, this.head.arc() - this.maxLength);
+    // A sample at this position, laid at this arc and birth time. Its radius is frozen now: the pulse, times the thinning on the final leg.
+    private TrailSample sampleAt(Vec3 position, double arc, double birth) {
+        float base = (float) this.thinning;
+        float pulsed = (float) (this.thinning * (PULSE_MIN + PULSE_RANGE * Math.sin((this.seed + birth) / PULSE_DIVISOR)));
+        return new TrailSample(position, arc, birth, base, pulsed);
     }
 
     private void drain() {
-        this.backArc = Math.min(this.backArc + this.drainBlocksPerTick, this.head.arc());
+        if (this.extraDrainTicks > 0) {
+            this.extraDrainTicks--;
+        } else {
+            this.cutTime += 1.0D;
+        }
         this.dissolveTicks++;
         this.emitDissolveDroplet();
-        if (this.remainingLength() < MIN_HEAD_SEPARATION) {
+        if (this.cutTime >= this.head.birth()) {
             this.remove();
         }
     }
 
-    // Drops samples that the back end has passed. The back end interpolates between previousBackArc and backArc,
-    // so the samples down to two spacings below previousBackArc are kept. Fast drains move the back end many spacings per tick.
+    // Drops samples that the back end has passed. The back end interpolates from the sample just behind it,
+    // so the samples down to a tick below the earlier of the two back ends are kept.
     private void pruneTrail() {
-        double keepFrom = this.previousBackArc - 2.0D * TRAIL_POINT_SPACING;
-        while (this.trail.size() > 1 && this.trail.peekLast().arc() < keepFrom) {
+        double keepFrom = Math.min(this.previousCutTime, this.cutTime) - 1.0D;
+        while (this.trail.size() > 1 && this.trail.peekLast().birth() < keepFrom) {
             this.trail.removeLast();
         }
     }
@@ -423,15 +426,14 @@ public class EssentiaStreamParticle extends Particle {
         this.z = this.head.position().z;
     }
 
-    private Vec3 trailPosition(int index) {
-        int current = 0;
+    private List<TrailSample> bodySamples() {
+        ArrayList<TrailSample> body = new ArrayList<>(this.trail.size());
         for (TrailSample sample : this.trail) {
-            if (current == index) {
-                return sample.position();
+            if (sample.birth() >= this.cutTime) {
+                body.add(sample);
             }
-            current++;
         }
-        return this.head.position();
+        return body;
     }
 
     private void emitFlightDroplet() {
@@ -439,11 +441,19 @@ public class EssentiaStreamParticle extends Particle {
             return;
         }
 
-        // Either just behind the head (the newest sample), or at a random point along the trail.
-        int index = this.random.nextBoolean() ? 0 : this.random.nextInt(this.trail.size());
-        Vec3 position = this.trailPosition(index);
-        Vec3 drift = randomOffset(DROPLET_DRIFT).add(0.0D, DROPLET_BUOYANCY, 0.0D);
-        this.spawnDroplet(position, drift);
+        // Half the time, a droplet comes off one of the three oldest samples. Otherwise it comes off the second newest.
+        List<TrailSample> body = this.bodySamples();
+        if (body.isEmpty()) {
+            return;
+        }
+        TrailSample sample;
+        if (this.random.nextBoolean()) {
+            int oldest = Math.min(3, body.size());
+            sample = body.get(body.size() - 1 - this.random.nextInt(oldest));
+        } else {
+            sample = body.get(Math.min(1, body.size() - 1));
+        }
+        this.spawnDroplet(sample.position(), this.gaussianVector(DROPLET_DRIFT_SIGMA));
     }
 
     private void emitDissolveDroplet() {
@@ -451,31 +461,51 @@ public class EssentiaStreamParticle extends Particle {
             return;
         }
 
-        Vec3 position = this.destination.add(randomOffset(DISSOLVE_SPREAD));
-        Vec3 pull = this.destination.subtract(position).scale(DISSOLVE_PULL);
-        this.spawnDroplet(position, pull);
+        // Droplets are not pulled in: they start at the destination and float up on their own buoyancy.
+        Vec3 position = this.destination.add(this.gaussianVector(DISSOLVE_SPREAD_SIGMA));
+        this.spawnDroplet(position, Vec3.ZERO);
     }
 
     private void spawnDroplet(Vec3 position, Vec3 velocity) {
         int age = DROPLET_MIN_AGE + this.random.nextInt(DROPLET_MAX_AGE - DROPLET_MIN_AGE + 1);
-        float size = DROPLET_MIN_SIZE + this.random.nextFloat() * DROPLET_SIZE_RANGE;
-        int color = ARGB.color(DROPLET_ALPHA, ARGB.red(this.rgbColor), ARGB.green(this.rgbColor), ARGB.blue(this.rgbColor));
-        // The glow particle is reused for droplets, so no extra particle type is needed.
-        GlowParticleOptions options = GlowParticleOptions.of(color).size(size).age(age);
+        float scale = DROPLET_MIN_SCALE + this.random.nextFloat() * DROPLET_SCALE_RANGE;
+        BubbleParticleOptions options = BubbleParticleOptions.of(this.rgbColor, scale, age);
         this.level.addParticle(options, position.x, position.y, position.z, velocity.x, velocity.y, velocity.z);
     }
 
-    private Vec3 randomOffset(double radius) {
+    private Vec3 gaussianVector(double sigma) {
         return new Vec3(
-                (this.random.nextDouble() * 2.0D - 1.0D) * radius,
-                (this.random.nextDouble() * 2.0D - 1.0D) * radius,
-                (this.random.nextDouble() * 2.0D - 1.0D) * radius
+                this.random.nextGaussian() * sigma,
+                this.random.nextGaussian() * sigma,
+                this.random.nextGaussian() * sigma
         );
     }
 
-    // Smooth shrink of the head radius as it approaches the destination on the final leg.
-    private static float arrivalRadiusFactor(double distance) {
-        return (float) Mth.smoothstep(Mth.clamp(distance / ARRIVE_BLEND_DISTANCE, 0.0D, 1.0D));
+    private static Vec3 clampPerAxis(Vec3 velocity, double limit, double verticalLimit) {
+        return new Vec3(
+                Mth.clamp(velocity.x, -limit, limit),
+                Mth.clamp(velocity.y, -verticalLimit, verticalLimit),
+                Mth.clamp(velocity.z, -limit, limit)
+        );
+    }
+
+    // With a launch direction, the head starts along it. Without one, it starts almost at rest, with a seeded direction.
+    // The vertical boost is added as initial upward velocity, so it bends the whole path up.
+    private static Vec3 launchVelocity(EssentiaStreamParticleOptions options, RandomSource random, double cruiseSpeed, double boostPerTick) {
+        Vec3 launch;
+        if (options.launchDirection().isPresent()) {
+            Vec3 direction = options.launchDirection().get().normalize().scale(cruiseSpeed);
+            launch = direction.add(
+                    random.nextGaussian() * LAUNCH_WOBBLE_FACTOR * cruiseSpeed,
+                    random.nextGaussian() * LAUNCH_WOBBLE_FACTOR * cruiseSpeed,
+                    random.nextGaussian() * LAUNCH_WOBBLE_FACTOR * cruiseSpeed
+            );
+        } else {
+            int seed = options.seed();
+            double scale = LAUNCH_SPEED_FACTOR * cruiseSpeed;
+            launch = new Vec3(Math.sin(seed / 4.0D), Math.sin(seed / 3.0D), Math.sin(seed / 2.0D)).scale(scale);
+        }
+        return launch.add(0.0D, boostPerTick, 0.0D);
     }
 
     private static List<Vec3> buildRoute(Vec3 from, List<Vec3> waypoints, Vec3 to) {
@@ -486,30 +516,21 @@ public class EssentiaStreamParticle extends Particle {
         return List.copyOf(route);
     }
 
-    private static Vec3 randomDirection(RandomSource random) {
-        Vec3 direction = new Vec3(random.nextGaussian(), random.nextGaussian(), random.nextGaussian()).normalize();
-        return direction.lengthSqr() > 0.0D ? direction : new Vec3(0.0D, 1.0D, 0.0D);
-    }
-
-    // The longest drain is a full maxLength of stream, because the back end never trails the head by more than that.
-    private static int drainTicks(double length, double drainBlocksPerTick) {
-        return (int) Math.ceil(length / drainBlocksPerTick);
-    }
-
-    // Lifetime covers the flight at the stream's speed, the hold, a full drain, and a margin.
-    private static int computeLifetime(List<Vec3> route, int holdTicks, double maxLength, double cruiseSpeed, double drainBlocksPerTick) {
+    // Lifetime covers the flight at the stream's speed with slack, the body that drains afterwards, and a margin.
+    private static int computeLifetime(List<Vec3> route, double bodyTicks, double cruiseSpeed) {
         double routeLength = 0.0D;
         for (int index = 1; index < route.size(); index++) {
             routeLength += route.get(index - 1).distanceTo(route.get(index));
         }
         int flightTicks = (int) Math.ceil(routeLength / cruiseSpeed * LIFETIME_FLIGHT_SLACK);
-        return Math.max(MIN_LIFETIME_TICKS, flightTicks + holdTicks + drainTicks(maxLength, drainBlocksPerTick) + LIFETIME_MARGIN_TICKS);
+        return Math.max(MIN_LIFETIME_TICKS, flightTicks + (int) Math.ceil(bodyTicks) + LIFETIME_MARGIN_TICKS);
     }
 
-    // Covers the route, the body radius, wobble, curve bulge and launch hop, so frustum culling never hides a visible stream.
+    // Covers the route, the body radius, wobble, curve bulge and launch boost, so frustum culling never hides a visible stream.
     private static AABB buildBounds(List<Vec3> route, float radius, float verticalBoost) {
-        double hopReach = Math.abs(verticalBoost) / TICKS_PER_SECOND / (1.0D - HOP_DECAY);
-        double padding = radius * 2.0D + EssentiaStreamMeshBuilder.WOBBLE_AMPLITUDE + BOUNDS_MARGIN + hopReach;
+        // Upward boost decays with damping, so it reaches roughly boost / (1 - damping) at most, in blocks per tick.
+        double boostReach = Math.abs(verticalBoost) / EssentiaStreamParticleOptions.TICKS_PER_SECOND / (1.0D - DAMPING);
+        double padding = radius * 2.0D + EssentiaStreamMeshBuilder.WOBBLE_AMPLITUDE + BOUNDS_MARGIN + boostReach;
         double minX = Double.MAX_VALUE;
         double minY = Double.MAX_VALUE;
         double minZ = Double.MAX_VALUE;
@@ -528,12 +549,14 @@ public class EssentiaStreamParticle extends Particle {
     }
 
     /**
-     * One point on the head's path.
+     * One sample on the head's path.
      *
      * @param position the centre-line position
-     * @param arrival  radius factor in [0, 1]. It is 1 in flight and shrinks to 0 at the destination
      * @param arc      distance travelled along the head's path when this point was placed, in blocks
+     * @param birth    the tick the sample was laid, in ticks since the stream was created (fractional between ticks)
+     * @param base     the stream's base radius when the sample was laid, before the pulse. The head cap blends with it
+     * @param radius   the radius of the sample: the pulse times the base at the time it was laid
      */
-    record TrailSample(Vec3 position, float arrival, double arc) {
+    record TrailSample(Vec3 position, double arc, double birth, float base, float radius) {
     }
 }

@@ -27,15 +27,14 @@ public final class SpawnEssentiaStreamClientCommand {
     private static final String ESSENTIA_STREAM_SUBCOMMAND = "essentia_stream";
     private static final String EXTEND_ARGUMENT = "extend";
     private static final String RADIUS_ARGUMENT = "radius";
-    private static final String MAX_LENGTH_ARGUMENT = "maxLength";
+    private static final String LENGTH_ARGUMENT = "length";
     private static final String SPEED_ARGUMENT = "speed";
     private static final int DEFAULT_EXTEND = EssentiaStreamParticleOptions.DEFAULT_EXTEND;
     private static final float DEFAULT_RADIUS = EssentiaStreamParticleOptions.DEFAULT_RADIUS;
-    private static final float DEFAULT_MAX_LENGTH = EssentiaStreamParticleOptions.DEFAULT_MAX_LENGTH;
+    private static final int DEFAULT_LENGTH = EssentiaStreamParticleOptions.DEFAULT_LENGTH;
     private static final float DEFAULT_SPEED = EssentiaStreamParticleOptions.DEFAULT_SPEED;
     private static final float MIN_RADIUS = 0.01F;
     private static final float MAX_RADIUS = 1.0F;
-    private static final float MAX_MAX_LENGTH = 64.0F;
     // Reach and entity margin used to find the stream destination, the same as the other example commands.
     private static final double TARGET_RANGE = 16.0D;
     private static final double ENTITY_MARGIN = 0.5D;
@@ -55,14 +54,14 @@ public final class SpawnEssentiaStreamClientCommand {
     // Arguments are positional: each optional argument requires the ones before it.
     private static LiteralArgumentBuilder<CommandSourceStack> essentiaStreamLiteral() {
         LiteralArgumentBuilder<CommandSourceStack> literal = Commands.literal(ESSENTIA_STREAM_SUBCOMMAND)
-                .executes(context -> spawn(context.getSource(), DEFAULT_EXTEND, DEFAULT_RADIUS, DEFAULT_MAX_LENGTH, DEFAULT_SPEED));
+                .executes(context -> spawn(context.getSource(), DEFAULT_EXTEND, DEFAULT_RADIUS, DEFAULT_LENGTH, DEFAULT_SPEED));
 
         RequiredArgumentBuilder<CommandSourceStack, ?> extend = Commands.argument(EXTEND_ARGUMENT, IntegerArgumentType.integer(0))
                 .executes(context -> spawn(
                         context.getSource(),
                         IntegerArgumentType.getInteger(context, EXTEND_ARGUMENT),
                         DEFAULT_RADIUS,
-                        DEFAULT_MAX_LENGTH,
+                        DEFAULT_LENGTH,
                         DEFAULT_SPEED
                 ));
 
@@ -71,16 +70,16 @@ public final class SpawnEssentiaStreamClientCommand {
                         context.getSource(),
                         IntegerArgumentType.getInteger(context, EXTEND_ARGUMENT),
                         FloatArgumentType.getFloat(context, RADIUS_ARGUMENT),
-                        DEFAULT_MAX_LENGTH,
+                        DEFAULT_LENGTH,
                         DEFAULT_SPEED
                 ));
 
-        RequiredArgumentBuilder<CommandSourceStack, ?> maxLength = Commands.argument(MAX_LENGTH_ARGUMENT, FloatArgumentType.floatArg(EssentiaStreamParticleOptions.MIN_MAX_LENGTH, MAX_MAX_LENGTH))
+        RequiredArgumentBuilder<CommandSourceStack, ?> length = Commands.argument(LENGTH_ARGUMENT, IntegerArgumentType.integer(EssentiaStreamParticleOptions.MIN_LENGTH, EssentiaStreamParticleOptions.MAX_LENGTH))
                 .executes(context -> spawn(
                         context.getSource(),
                         IntegerArgumentType.getInteger(context, EXTEND_ARGUMENT),
                         FloatArgumentType.getFloat(context, RADIUS_ARGUMENT),
-                        FloatArgumentType.getFloat(context, MAX_LENGTH_ARGUMENT),
+                        IntegerArgumentType.getInteger(context, LENGTH_ARGUMENT),
                         DEFAULT_SPEED
                 ));
 
@@ -89,18 +88,18 @@ public final class SpawnEssentiaStreamClientCommand {
                         context.getSource(),
                         IntegerArgumentType.getInteger(context, EXTEND_ARGUMENT),
                         FloatArgumentType.getFloat(context, RADIUS_ARGUMENT),
-                        FloatArgumentType.getFloat(context, MAX_LENGTH_ARGUMENT),
+                        IntegerArgumentType.getInteger(context, LENGTH_ARGUMENT),
                         FloatArgumentType.getFloat(context, SPEED_ARGUMENT)
                 ));
 
-        maxLength.then(speed);
-        radius.then(maxLength);
+        length.then(speed);
+        radius.then(length);
         extend.then(radius);
         literal.then(extend);
         return literal;
     }
 
-    private static int spawn(CommandSourceStack source, int extend, float radius, float maxLength, float speed) {
+    private static int spawn(CommandSourceStack source, int extend, float radius, int length, float speed) {
         if (!(source.getEntity() instanceof Player player)) {
             source.sendFailure(Component.literal("This command requires a local player."));
             return 0;
@@ -112,12 +111,12 @@ public final class SpawnEssentiaStreamClientCommand {
 
         CommonTargeting.Targeting targeting = CommonTargeting.resolve(player, TARGET_RANGE, ENTITY_MARGIN);
         int color = Mth.hsvToRgb(level.getRandom().nextFloat(), RANDOM_SATURATION, RANDOM_BRIGHTNESS);
-        EssentiaStreams.spawn(level, targeting.origin(), targeting.target(), color, radius, extend, maxLength, speed);
+        EssentiaStreams.spawn(level, targeting.origin(), targeting.target(), color, radius, extend, length, speed);
 
         source.sendSuccess(() -> Component.literal(String.format(
                 Locale.ROOT,
-                "Spawned essentia stream: extend %d, radius %.2f, maxLength %.1f, speed %.1f blocks/s.",
-                extend, radius, maxLength, speed
+                "Spawned essentia stream: extend %d, radius %.2f, length %d ticks, speed %.2f blocks/s.",
+                extend, radius, length, speed
         )), false);
         return 1;
     }

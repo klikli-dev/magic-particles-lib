@@ -93,6 +93,7 @@ public class EssentiaStreamParticle extends Particle {
     private final float baseRadius;
     private final float phase;
     private final Deque<TrailSample> trail = new ArrayDeque<>();
+    private final ArrayList<TrailSample> snapshotBuffer = new ArrayList<>();
     private int capacity;
     private Vec3 head;
     private Vec3 velocity;
@@ -209,13 +210,15 @@ public class EssentiaStreamParticle extends Particle {
     }
 
     private List<TrailSample> snapshot(float partialTickTime) {
-        ArrayList<TrailSample> samples = new ArrayList<>(this.trail);
-        if (this.dissolveTicks == 0 && samples.size() > 1) {
-            TrailSample newest = samples.get(0);
-            Vec3 previous = samples.get(1).position();
-            samples.set(0, new TrailSample(Mth.lerp(partialTickTime, previous, newest.position()), newest.arrival()));
+        // One buffer per stream instead of a new list per frame. The mesh builder reads it fully before renderData returns.
+        this.snapshotBuffer.clear();
+        this.snapshotBuffer.addAll(this.trail);
+        if (this.dissolveTicks == 0 && this.snapshotBuffer.size() > 1) {
+            TrailSample newest = this.snapshotBuffer.get(0);
+            Vec3 previous = this.snapshotBuffer.get(1).position();
+            this.snapshotBuffer.set(0, new TrailSample(Mth.lerp(partialTickTime, previous, newest.position()), newest.arrival()));
         }
-        return samples;
+        return this.snapshotBuffer;
     }
 
     private void flyTowardsDestination() {

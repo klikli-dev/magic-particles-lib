@@ -30,6 +30,21 @@ public final class EssentiaStreams {
     }
 
     /**
+     * Spawns a stream with a custom radius, hold and maximum length.
+     *
+     * @param level     the client level to spawn in
+     * @param from      start of the stream
+     * @param to        destination the stream drains into
+     * @param color     packed RGB color
+     * @param radius    body radius in blocks
+     * @param extend    hold ticks at the destination after the head arrives
+     * @param maxLength maximum stream length in blocks before the tail follows the head as a comet
+     */
+    public static void spawn(ClientLevel level, Vec3 from, Vec3 to, int color, float radius, int extend, float maxLength) {
+        spawn(level, EssentiaStreamParticleOptions.of(from, to, color, radius, extend, maxLength));
+    }
+
+    /**
      * Spawns a stream with full control over its options.
      *
      * @param level   the client level to spawn in

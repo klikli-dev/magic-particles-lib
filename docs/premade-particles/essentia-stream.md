@@ -118,7 +118,7 @@ Builder methods: `from`, `to`, `exit`, `entry`, `via` (adds a waypoint between t
 
 ### Pathfinding
 
-Pathfinding is **not** implemented. The stream only follows the waypoints it is given. Waypoints can come from a pathfinder, for example A* over the block grid, with line-of-sight smoothing and about 0.4 blocks of clearance from walls. Pass the result as `waypoints` or with `via`. The mirror demo writes its single corner waypoint by hand.
+Pathfinding is **not** implemented. The stream only follows the waypoints it is given. Waypoints can come from a pathfinder, for example A* over the block grid, with line-of-sight smoothing and about 0.4 blocks of clearance from walls. Pass the result as `waypoints` or with `via`.
 
 ## Droplets
 
@@ -200,7 +200,6 @@ Example helper commands for local testing:
 /mpl spawn essentia_stream 20 0.15
 /mpl spawn essentia_stream 20 0.15 20
 /mpl spawn essentia_stream 20 0.15 20 1.25
-/mpl spawn essentia_stream_mirrors
 ```
 
 Arguments for `essentia_stream`, in order. Each optional argument needs the ones before it:
@@ -211,5 +210,3 @@ Arguments for `essentia_stream`, in order. Each optional argument needs the ones
 - `speed`: head speed in blocks per second, between `0.25` and `20` (default `1.25`). The chat message after a spawn shows the values used.
 
 The stream flies from roughly the player's eye to the block or entity being looked at (up to 16 blocks away). Each use picks a random color.
-
-`essentia_stream_mirrors` is a server command for operators. It places a demo next to the player, two blocks east and two blocks south, at head height. Stream A goes from a gold source block into mirror 1 (a pane with an item frame). Stream B goes from mirror 2 (a second pane with a frame, facing south), around a wall corner, to an emerald target. Both streams are spawned in the same tick, independently, and they use the same colour. The demo overwrites the blocks in its footprint (about 7 by 10 blocks) and removes item frames there from an earlier run.

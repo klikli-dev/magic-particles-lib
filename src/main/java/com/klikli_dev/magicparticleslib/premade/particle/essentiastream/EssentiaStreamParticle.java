@@ -105,8 +105,6 @@ public class EssentiaStreamParticle extends Particle {
     // Head speed in blocks per tick, and the per-axis velocity limit (the upward limit also covers the launch boost).
     private final double cruiseSpeed;
     private final double verticalLimit;
-    // Texture repeats per block of path, derived from cruise speed so the texture moves 0.075 repeats per tick.
-    private final double repeatsPerBlock;
     // Committed path samples, newest (head side) first.
     private final Deque<TrailSample> trail = new ArrayDeque<>();
     // Reused every frame to hold the render snapshot.
@@ -124,8 +122,6 @@ public class EssentiaStreamParticle extends Particle {
     private double bodyTicks;
     // Ticks a merge added while draining, during which the back end does not retract.
     private int extraDrainTicks;
-    // Number of drain ticks so far. Drives the texture scroll.
-    private int dissolveTicks;
     private Vec3 velocity;
     private int routeIndex = 1;
     private boolean arrived;
@@ -139,7 +135,6 @@ public class EssentiaStreamParticle extends Particle {
         this.rgbColor = options.color();
         this.seed = options.seed();
         this.cruiseSpeed = options.speed() / EssentiaStreamParticleOptions.TICKS_PER_SECOND;
-        this.repeatsPerBlock = EssentiaStreamMeshBuilder.repeatsPerBlock(this.cruiseSpeed);
         double boostPerTick = options.verticalBoost() / EssentiaStreamParticleOptions.TICKS_PER_SECOND;
         this.verticalLimit = Math.max(this.cruiseSpeed, Math.abs(boostPerTick));
 
@@ -256,9 +251,8 @@ public class EssentiaStreamParticle extends Particle {
 
         double time = this.age + partialTickTime;
         double back = Mth.lerp(partialTickTime, this.previousCutTime, this.cutTime);
-        // The texture only scrolls while draining, one drain tick at a time.
-        double textureOffset = this.dissolveTicks > 0 ? (this.dissolveTicks + partialTickTime) * EssentiaStreamMeshBuilder.TEXTURE_REPEATS_PER_TICK : 0.0D;
-        return EssentiaStreamMeshBuilder.build(samples, this.origin, time, back, this.rgbColor, this.repeatsPerBlock, textureOffset);
+        // Each ring's texture V follows its own birth time, so the texture flows continuously, including while draining.
+        return EssentiaStreamMeshBuilder.build(samples, this.origin, time, back, this.rgbColor);
     }
 
     /**
@@ -311,11 +305,12 @@ public class EssentiaStreamParticle extends Particle {
         ));
     }
 
+    // The live front is interpolated between the last two ticks, so its birth is too. That keeps its texture V continuous across ticks.
     private TrailSample liveFront(float partialTickTime) {
         return new TrailSample(
                 Mth.lerp(partialTickTime, this.previousHead.position(), this.head.position()),
                 Mth.lerp(partialTickTime, this.previousHead.arc(), this.head.arc()),
-                this.head.birth(),
+                Mth.lerp(partialTickTime, this.previousHead.birth(), this.head.birth()),
                 this.head.base(),
                 this.head.radius()
         );
@@ -400,7 +395,6 @@ public class EssentiaStreamParticle extends Particle {
         } else {
             this.cutTime += 1.0D;
         }
-        this.dissolveTicks++;
         this.emitDissolveDroplet();
         if (this.cutTime >= this.head.birth()) {
             this.remove();

@@ -23,15 +23,18 @@ import java.util.List;
 /**
  * Turns the stream's render samples into a tube mesh.
  * <p>
- * Every sample knows when it was laid ({@code birth}, in ticks). Its age in ticks, {@code slot = time - birth}, is what the
- * ripple, wobble and shimmer are indexed by. Samples that were laid while the head was slow are close together, so the
- * patterns bunch there, and fast segments stretch them.
+ * Every sample knows when it was laid ({@code birth}, in ticks). Its age in ticks, {@code slot = time - birth}, is used for
+ * the head and tail shaping. The ripple, wobble and shimmer use the phase {@code slot + time}. Samples that were laid while
+ * the head was slow are close together, so those patterns bunch there, and fast segments stretch them.
+ * <p>
+ * The texture V of each ring is {@code 0.075 * slot}, so the texture is a function of the time a sample has been laid. It
+ * flows continuously along the body, independent of the speed.
  */
 final class EssentiaStreamMeshBuilder {
     // Eight sides is round enough for a liquid tube at this size while keeping the vertex count low.
     private static final int TUBE_SEGMENTS = 8;
     private static final Contour2D TUBE_CONTOUR = Contour2D.circle(1.0D, TUBE_SEGMENTS);
-    // Texture repeats per tick of travel. The path-length texture scale is derived from this and the cruise speed.
+    // Texture V per tick since the sample was laid.
     static final double TEXTURE_REPEATS_PER_TICK = 0.075D;
     // Head: the first ticks are radius zero, then the radius blends up to the full body over a few samples.
     private static final double HEAD_ZERO_TICKS = 1.0D;
@@ -55,21 +58,12 @@ final class EssentiaStreamMeshBuilder {
     }
 
     /**
-     * The texture repeats per block of path for a stream with the given cruise speed, so that the texture moves 0.075
-     * repeats per tick of travel.
-     */
-    static double repeatsPerBlock(double cruisePerTick) {
-        return TEXTURE_REPEATS_PER_TICK / cruisePerTick;
-    }
-
-    /**
      * Extrudes the stream.
      * <p>
      * Positions are relative to origin, so the float vertices stay small; the caller translates the pose by origin - camera.
      * {@code time} is the stream's age in ticks including the partial tick, and {@code back} is the birth time of the back end.
-     * textureOffset is the dissolve scroll in texture repeats. It is 0 while the stream is flying.
      */
-    static ExtrusionMesh build(List<EssentiaStreamParticle.TrailSample> samples, Vec3 origin, double time, double back, int rgbColor, double repeatsPerBlock, double textureOffset) {
+    static ExtrusionMesh build(List<EssentiaStreamParticle.TrailSample> samples, Vec3 origin, double time, double back, int rgbColor) {
         ArrayList<PathPoint> points = new ArrayList<>(samples.size());
         for (EssentiaStreamParticle.TrailSample sample : samples) {
             double slot = Math.max(0.0D, time - sample.birth());
@@ -78,26 +72,24 @@ final class EssentiaStreamMeshBuilder {
             float radius = radius(sample, slot, phase, back);
             points.add(PathPoint.of(position)
                     .withColor(shimmer(rgbColor, phase))
-                    .withContourTransform(AffineTransform2D.scale(radius, radius)));
+                    .withContourTransform(AffineTransform2D.scale(radius, radius))
+                    .withTextureV(TEXTURE_REPEATS_PER_TICK * slot));
         }
 
-        return Extrusion.engine().extrude(TUBE_CONTOUR, points, options(repeatsPerBlock, textureOffset));
+        return Extrusion.engine().extrude(TUBE_CONTOUR, points, OPTIONS);
     }
 
-    private static ExtrusionOptions options(double repeatsPerBlock, double textureOffset) {
-        // Zero-radius ends close the tube by themselves, so caps stay off.
-        // PATH_EDGE normals are enough because the stream is fullbright.
-        // VERTEX_CYLINDER maps U around the tube and V along the stream, head first.
-        return Extrusion.options()
-                .joinStyle(JoinStyle.ANGLE)
-                .normalStyle(NormalStyle.PATH_EDGE)
-                .capEnds(false)
-                .textureMode(TextureCoordinateMode.VERTEX_CYLINDER)
-                .tubeSegments(TUBE_SEGMENTS)
-                .textureLengthScale(repeatsPerBlock)
-                .textureLengthOffset(textureOffset)
-                .build();
-    }
+    // The texture V comes from each point, so the path-length scale and offset are left at their neutral values.
+    // Zero-radius ends close the tube by themselves, so caps stay off.
+    // PATH_EDGE normals are enough because the stream is fullbright.
+    // VERTEX_CYLINDER maps U around the tube and V along the stream, head first.
+    private static final ExtrusionOptions OPTIONS = Extrusion.options()
+            .joinStyle(JoinStyle.ANGLE)
+            .normalStyle(NormalStyle.PATH_EDGE)
+            .capEnds(false)
+            .textureMode(TextureCoordinateMode.VERTEX_CYLINDER)
+            .tubeSegments(TUBE_SEGMENTS)
+            .build();
 
     private static Vec3 wobble(Vec3 position, double phase) {
         return new Vec3(

@@ -30,7 +30,7 @@ A stream is a **body** of samples laid along the head's path. The body is measur
 1. **Launch:** the head starts at the source. With a launch direction it leaves along that direction at cruise speed. Without one, it starts almost at rest, pointing in a direction set by the seed. A `verticalBoost` adds an upward velocity on top.
 2. **Fly:** the head steers toward its waypoint each tick and lays a sample about every 0.1 blocks of arc length. Each sample records the tick it was laid, so the body is the last `length` ticks behind the head. Early in the flight the body is the whole path from the source, so the stream grows out of the source like a worm.
 3. **Arrive:** on the final leg, within 1 block of the destination, the radius of newly laid samples is multiplied by `sin(distance × π / 2)` every tick. The radius therefore shrinks to nothing quickly, and the head snaps onto the destination.
-4. **Drain:** once arrived, the back end retracts one tick of body per tick, so the body empties into the destination. The texture scrolls with the drain. The stream is removed when the body is gone.
+4. **Drain:** once arrived, the back end retracts one tick of body per tick, so the body empties into the destination. The texture keeps flowing through the body as it drains. The stream is removed when the body is gone.
 
 The body is interpolated between ticks, so the motion is smooth.
 
@@ -54,7 +54,7 @@ Each sample's radius is set when it is laid. Then it is shaped when it is drawn:
 - **Ripple:** the radius varies by `±20%`, with the phase set by the sample's age in ticks, so the ripples bunch where the head was slow and stretch where it was fast.
 - **Wobble:** the centre line moves by up to 0.03 blocks per axis, at a different period per axis.
 - **Shimmer:** the colour only darkens, by up to 10%, following the same age-based phase.
-- **Texture:** the texture moves 0.075 repeats per tick of travel. At the default speed that is about 1.2 repeats per block. The texture scrolls only while draining.
+- **Texture:** the texture V of each ring is `0.075` per tick since its sample was laid, so the texture follows time, not distance. At the default speed that is about 1.2 repeats per block, and it stays the same when the speed changes. It flows continuously along the body, while flying and while draining.
 
 ### Arrival and merges
 

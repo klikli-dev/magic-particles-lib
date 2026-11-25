@@ -2,6 +2,10 @@
 
 The essentia stream particle renders a glowing liquid stream: a worm-shaped body that flies from a source to a destination, then drains into it.
 
+| ![essentia-1.png](essentia-1.png) | ![essentia-2.png](essentia-2.png) |
+|-----------------------------------|-----------------------------------|
+| ![essentia-3.png](essentia-3.png) | ![essentia-4.png](essentia-4.png) |
+
 ## Registry ids
 
 - `magicparticleslib:essentia_stream`: the stream
